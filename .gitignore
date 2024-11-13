@@ -1,5 +1,14 @@
 restful-api/node_modules/
+
 .apikey
+
 */config.json
+
 speech-interpreter/deepspeech/*.pbmm
 speech-interpreter/deepspeech/*.scorer
+
+__pycache__/
+*.py[cod]
+*$py.class
+
+.DS_Store
