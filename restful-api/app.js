@@ -1,7 +1,6 @@
 const express = require("express");
-const websocket = require('express-ws');
+const ably = require('ably');
 const app = express();
-const socketApp = websocket(app);
 
 //TODO: Implement Get function
 app.get('/', (req, res) => {
@@ -12,8 +11,6 @@ app.get('/', (req, res) => {
 app.post('/submit-item', (req, res) => {
 res.send('TODO item submitted');
 });
-
-socketApp(app);
 
 const port = 3000;
 
