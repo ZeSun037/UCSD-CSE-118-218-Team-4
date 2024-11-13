@@ -1,4 +1,5 @@
 restful-api/node_modules/
 .apikey
 */config.json
-speech-interpreter/deepspeech
+speech-interpreter/deepspeech/*.pbmm
+speech-interpreter/deepspeech/*.scorer
