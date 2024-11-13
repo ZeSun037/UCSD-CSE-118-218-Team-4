@@ -1,0 +1,43 @@
+version: "3.8"
+
+services:
+  backend:
+    image: "node:23"
+    working_dir: /home/node/app
+    environment:
+      - NODE_ENV=production
+    volumes:
+      - ./restful-api:/home/node/app
+    expose:
+      - "8081"
+    ports:
+      - "8001:8001"
+    command: "node app.js"
+    networks:
+      - cse118-218_network
+    depends_on:
+      redis:
+        condition: service_healthy
+  
+  redis:
+    image: "redis:latest"
+    ports:
+      - "6379"
+    networks:
+      - cse118-218_network
+    volumes:
+      - "redis_cse118-218_data:/data"
+    command: "redis-server --appendonly yes"
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 10s
+      retries: 5
+      start_period: 5s
+      timeout: 10s
+
+networks:
+  cse118-218_network:
+    driver: bridge
+
+volumes:
+  redis_cse118-218_data: null
