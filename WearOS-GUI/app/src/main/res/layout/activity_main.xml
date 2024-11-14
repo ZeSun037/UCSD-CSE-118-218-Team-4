@@ -1,15 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.wear.widget.BoxInsetLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="@dimen/box_inset_layout_padding">
+    android:padding="8dp">
 
     <TextView
         android:id="@+id/text_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Welcome to WearOS"
+        android:layout_gravity="top|center"
+        android:paddingTop="8dp"
+        android:paddingBottom="10dp"
+        android:text="My To-Do List"
+        android:textColor="@android:color/black"
+        android:background="@android:color/white"
         android:textSize="18sp"
-        android:textColor="@android:color/white"
+        android:textStyle="bold"/>
+
+    <androidx.wear.widget.WearableRecyclerView
+        android:id="@+id/recyclerView"
+        android:layout_width="140dp"
+        android:layout_marginEnd="16dp"
+        android:layout_height="match_parent"
+        android:layout_marginVertical="30dp"
+        android:layout_marginHorizontal="20dp"
         android:layout_gravity="center" />
+
+    <TextView
+        android:id="@+id/item_index"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center|end"
+        android:layout_margin="4dp"
+        android:textColor="@android:color/black"
+        android:textSize="12sp"
+        android:text="" />
+
 </androidx.wear.widget.BoxInsetLayout>
