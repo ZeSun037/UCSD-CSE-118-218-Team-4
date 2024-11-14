@@ -4,6 +4,7 @@ import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
@@ -26,7 +27,15 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.TodoViewHolder
     @Override
     public void onBindViewHolder(TodoViewHolder holder, int position) {
         TodoItem item = todoItems.get(position);
-        holder.title.setText(item.getTitle());
+        String indexedTitle = (position + 1) + ". " + item.getTitle();
+        holder.titleTextView.setText(indexedTitle);
+
+        // Handle checkmark button click to delete item
+        holder.checkmarkButton.setOnClickListener(v -> {
+            todoItems.remove(position);
+            notifyItemRemoved(position);
+            notifyItemRangeChanged(position, todoItems.size());
+        });
     }
 
     @Override
@@ -35,11 +44,13 @@ public class TodoAdapter extends RecyclerView.Adapter<TodoAdapter.TodoViewHolder
     }
 
     public static class TodoViewHolder extends RecyclerView.ViewHolder {
-        TextView title, description;
+        TextView titleTextView;
+        ImageButton checkmarkButton;
 
         public TodoViewHolder(View itemView) {
             super(itemView);
-            title = itemView.findViewById(R.id.titleTextView);
+            titleTextView = itemView.findViewById(R.id.titleTextView);
+            checkmarkButton = itemView.findViewById(R.id.checkmark_button);
         }
     }
 }
