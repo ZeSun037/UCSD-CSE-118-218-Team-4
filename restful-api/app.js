@@ -1,26 +1,22 @@
-const {getAblyClient, getRedisClient} = require('./init/init');
+const {redisClient, redisConnect, ablyClient} = require('./init/init');
 const express = require('express');
+const echoRouter = require('./routers/echoRouter')
+const watchRouter = require('./routers/watchRouter')
 const config = require('./config.json');
 
 const app = express();
-const ably_realtime = getAblyClient();
-const redis = getRedisClient();
+const redis = redisClient();
+
+redisConnect(redis);
 
 //TODO: Implement Get function
 app.get('/', (req, res) => {
-    res.send('Hello World');  
+  res.send('Hello World');  
 });
 
-//TODO: Implement Post function
-app.post('/submit-item', (req, res) => {
-  res.send('TODO item submitted');
-});
+app.use('/echo', echoRouter);
 
-app.delete('/:device', (req, res, next) => {
-
-}, (req, res) => {
-
-})
+app.use('/watch', watchRouter);
 
 const port = 3000;
 

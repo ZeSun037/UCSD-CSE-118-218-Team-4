@@ -28,9 +28,6 @@ const redisConnect = async (redisInstance) => {
 
 const ablyClient = () => {
     const ablyRealtime = new Ably.Realtime(config['ably-key']);
-    ablyRealtime.connection.once("connected", () => {
-        console.log("Connected to Ably!")
-    });
     return ablyRealtime;
 }
 
