@@ -1,9 +1,15 @@
 package com.example.wearos_gui;
 
+import java.time.LocalDate;
+
 public class TodoItem {
     private String title;
     private Priority priority;
-    private String category;  // User-defined category as a String
+    private Place place;
+    private Time time;
+    private LocalDate date;
+    private Boolean isDone;
+
 
     // Enum for Priority
     public enum Priority {
@@ -12,18 +18,42 @@ public class TodoItem {
         HIGH
     }
 
-    // Constructor with priority and category
-    public TodoItem(String title, Priority priority, String category) {
-        this.title = title;
-        this.priority = priority;
-        this.category = category;
+    public enum Place {
+        HOME,
+        SCHOOL,
+        WORK,
+        STORE,
+        GENERAL
     }
 
-    // Constructor without priority and category (default values)
+    public enum Time {
+        MORNING,
+        ON_DUTY,
+        OFF_DUTY,
+        NOON,
+        AFTERNOON,
+        NIGHT,
+        GENERAL
+    }
+
+    // Constructor with priority and place
+    public TodoItem(String title, Priority priority, Place place, Time time, LocalDate date, boolean isDone) {
+        this.title = title;
+        this.priority = priority;
+        this.place = place;
+        this.time = time;
+        this.date = date;
+        this.isDone = isDone;
+    }
+
+    // Constructor without priority and place (default values)
     public TodoItem(String title) {
         this.title = title;
         this.priority = Priority.MEDIUM;  // Default priority
-        this.category = "General";        // Default category
+        this.place = Place.GENERAL;        // Default place
+        this.time = Time.GENERAL;
+        this.date = LocalDate.now();
+        this.isDone = false;
     }
 
     // Getters and Setters
@@ -33,6 +63,25 @@ public class TodoItem {
     public Priority getPriority() { return priority; }
     public void setPriority(Priority priority) { this.priority = priority; }
 
-    public String getCategory() { return category; }
-    public void setCategory(String category) { this.category = category; }
+    public Place getPlace() { return place; }
+    public void setPlace(Place place) { this.place = place; }
+    public Time getTime() { return time; }
+    public void setTime(Time time) { this.time = time; }
+    public LocalDate getDate() { return date; }
+    public void setDate(LocalDate date) { this.date = date; }
+    public Boolean getDone() { return isDone; }
+    public void setDone(Boolean done) { isDone = done; }
+
+    public boolean isDueToday(LocalDate today) {
+        return date.equals(today);
+    }
+
+    public boolean isDueTomorrow(LocalDate tomorrow) {
+        return date.equals(tomorrow);
+    }
+
+    public boolean isDueThisWeek(LocalDate startOfWeek, LocalDate endOfWeek) {
+        return (date.isAfter(startOfWeek.minusDays(1)) && date.isBefore(endOfWeek.plusDays(1)));
+    }
+
 }
