@@ -22,7 +22,7 @@ public class MainActivity extends FragmentActivity {
 
         // Sample data
         todoItems.add(new TodoItem("Buy concert ticket", TodoItem.Priority.MEDIUM,
-                TodoItem.Place.GENERAL, TodoItem.Time.GENERAL, LocalDate.now().plusDays(1), false));
+                TodoItem.Place.GENERAL, TodoItem.Time.GENERAL, LocalDate.now().plusDays(1), true));
         todoItems.add(new TodoItem("Submit next week's progress", TodoItem.Priority.LOW,
                 TodoItem.Place.GENERAL, TodoItem.Time.GENERAL, LocalDate.now().plusDays(7), false));
         todoItems.add(new TodoItem("Buy groceries"));
