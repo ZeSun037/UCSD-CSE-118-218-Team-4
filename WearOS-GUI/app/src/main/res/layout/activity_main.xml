@@ -2,14 +2,13 @@
 <androidx.wear.widget.BoxInsetLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="@dimen/box_inset_layout_padding">
+    android:padding="8dp">
 
-    <TextView
-        android:id="@+id/text_view"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Welcome to WearOS"
-        android:textSize="18sp"
-        android:textColor="@android:color/white"
+    <!-- ViewPager2 for swiping between filter views -->
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/viewPager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:layout_gravity="center" />
+
 </androidx.wear.widget.BoxInsetLayout>
