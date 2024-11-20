@@ -1,0 +1,9 @@
+#!/usr/bin/dh-exec
+debian/tmp/usr/bin/jack*
+debian/tmp/usr/lib/*/jack/jack_dummy.so
+debian/tmp/usr/lib/*/jack/jack_net.so
+debian/tmp/usr/lib/*/jack/jack_oss.so
+debian/audio.conf usr/share/jackd
+
+[linux-any] debian/tmp/usr/lib/*/jack/jack_alsa.so
+[linux-any] debian/tmp/usr/lib/*/jack/jack_alsa_midi.so

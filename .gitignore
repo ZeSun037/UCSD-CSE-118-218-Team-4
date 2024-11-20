@@ -3,4 +3,15 @@ restful-api/config.json
 .apikey
 */config.json
 */playground.js
-amazon
+.apikey
+
+*/config.json
+
+speech-interpreter/deepspeech/*.pbmm
+speech-interpreter/deepspeech/*.scorer
+
+__pycache__/
+*.py[cod]
+*$py.class
+
+.DS_Store
