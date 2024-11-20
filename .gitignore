@@ -1,5 +1,8 @@
 restful-api/node_modules/
-
+restful-api/config.json
+.apikey
+*/config.json
+*/playground.js
 .apikey
 
 */config.json
