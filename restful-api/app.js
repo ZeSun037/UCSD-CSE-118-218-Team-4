@@ -1,13 +1,11 @@
-const {redisClient, redisConnect, ablyClient} = require('./init/init');
 const express = require('express');
 const echoRouter = require('./routers/echoRouter')
 const watchRouter = require('./routers/watchRouter')
-const config = require('./config.json');
 
 const app = express();
-const redis = redisClient();
 
-redisConnect(redis);
+app.use(express.json()); 
+app.use(express.urlencoded({extended: false}));
 
 //TODO: Implement Get function
 app.get('/', (req, res) => {

@@ -1,13 +1,14 @@
 const express = require('express');
-const {redisClient, redisConnect, ablyClient} = require('../init/init');
-
-const redis = redisClient();
+const {ablyClient} = require('../init/initAbly');
+const Redis = require('../init/initRedis');
 const ably = ablyClient();
 
 const echoRouter = express.Router();
 
 // Posting TODOs from echo
 echoRouter.post('/new', async (req, res, next) => {
+    const redis = await Redis.getConnection();
+
     const newTODOs = req.body;
 
     // Add function to call speech-to-text function
@@ -22,31 +23,45 @@ echoRouter.post('/new', async (req, res, next) => {
         }
     ]
     res.locals.todos = testTODOs;
-    testTODOs.forEach(async (batch) => {
-        await redis.exists(batch.assignee, async (err, reply) => {
-            if (reply === 1) { // The assignee is registered
-
-            } else {
-                // Possible way of creating encryption?
-                await redis.sAdd(batch.assignee, []);
-                batch.todos.forEach(async todo => {
-                    await redis.sAdd(batch.assignee, todo);
-                })
+    for (const batch of testTODOs) {
+        const exists = await redis.exists(batch.assignee);
+        if (exists === 1) {
+            console.log(`${batch.assignee} already exists in the database!`);
+            const insert = await redis.sAdd(batch.assignee, batch.todos);
+            if (insert === 1) {
+                console.log(`Successfully created new TODOs for ${batch.assignee}.`);
             }
-        })
-    });
+        } else {
+            console.log(`Creating new TODOs for ${batch.assignee}...`);
+            const insert = await redis.sAdd(batch.assignee, batch.todos);
+            if (insert === 1) {
+                console.log(`Successfully created new TODOs for ${batch.assignee}.`);
+            }
+        }
+        console.log(await redis.sMembers(batch.assignee));
+    }
+
+    // await redis.disconnect();
+    // console.log("Transaction Done. Disconnecting from Redis.");
+    
     next();
 }, async (req, res) => {
-    await ably.connection.once("connected");
 
-    console.log("Ably Connection Established. Ready to publish todos.");
+    console.log("Broadcasting the TODOs.");
+    console.log("Preparing Ably connection.");
+
+    ably.connection.once("connected", () => {
+        console.log("Connected to Ably!")
+      });
+
+    console.log("Ably Connection Established. Ready to publish todos.\n");
 
     res.locals.todos.forEach(async todo => {
         const channel = ably.channels.get(`todo-dispatcher-${todo.assignee}`);
         await channel.publish("Your Tasks!", todo);
     })
 
-    await ably.connection.close();
+    //ably.connection.close();
 
     return res.send("TODO batch processing done.");
 })

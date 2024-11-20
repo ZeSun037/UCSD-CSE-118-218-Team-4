@@ -1,31 +1,41 @@
 const express = require('express');
-const {redisClient, redisConnect, ablyClient} = require('../init/init');
+const {ablyClient} = require('../init/initAbly');
+const Redis = require('../init/initRedis');
 
-const redis = redisClient();
-const watchRouter = express.Router();
 const ably = ablyClient();
+const watchRouter = express.Router();
 
 watchRouter.delete('/:user', async (req, res, next) => {
+    const redis = await Redis.getConnection();
+    
+    console.log(req.params);
     const user = req.params.user;
     const tasks = req.body.tasks;
-    redis.exists(user, async (err, rep) => {
-        if (reply !== 1) {
-
-        } else {
-            res.locals.completed = [];
-            res.locals.user = user;
-            tasks.forEach(async element => {
-                const exists = await redis.sIsMember(user, element);
-                if (exists) {
-                    await redis.sRem(user, element);
-                    res.locals.completed.push(element);
-                }
-            });
+    const reply = await redis.exists(user);
+    if (reply !== 1) {
+        return res.status(404).send("The user does not exist!");
+    } else {
+        res.locals.completed = [];
+        res.locals.user = user;
+        for (element of tasks) {
+            const exists = await redis.sIsMember(user, element);
+            if (exists) {
+                await redis.sRem(user, element);
+                console.log(`${element} completed for ${user}.`);
+                res.locals.completed.push(element);
+            } else {
+                console.log(`${element} does not exist in ${user} TODO list.`);
+            }
         }
-    })
+    }
+
+    // await redis.disconnect();
+    // console.log("Transaction Done. Disconnecting from Redis.")
     next();
 }, async (req, res) => {
-    await ably.connection.once("connected");
+    await ably.connection.once("connected", () => {
+        console.log("Successfully connected to ably!");
+    });
 
     console.log("Ready to broadcast completion.");
 
@@ -33,7 +43,7 @@ watchRouter.delete('/:user', async (req, res, next) => {
 
     await channel.publish(`${res.locals.user} completed following tasks`, res.locals.completed);
 
-    await ably.connection.close();
+    //await ably.connection.close();
 
     return res.send("TODOs completed and notified!");
 });
