@@ -6,7 +6,7 @@ const {getUserTasks, deleteUserTasks} = require('../controllers/watchController'
 const ably = ablyClient();
 const watchRouter = express.Router();
 
-watchRouter.delete(':/user', deleteUserTasks);
+watchRouter.delete('/:user', deleteUserTasks);
 
 watchRouter.get('/:user', getUserTasks);
 
