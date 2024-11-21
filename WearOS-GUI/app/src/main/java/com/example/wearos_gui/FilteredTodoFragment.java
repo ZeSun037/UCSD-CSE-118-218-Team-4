@@ -145,7 +145,11 @@ public class FilteredTodoFragment extends Fragment {
 
             // TextView for the to-do title
             TextView todoTextView = new TextView(getContext());
-            todoTextView.setText(item.getTitle());
+            if (item.getAssignee().equals("")) {
+                todoTextView.setText(item.getTitle());
+            } else {
+                todoTextView.setText(item.getAssignee() + ": " + item.getTitle());
+            }
             todoTextView.setTextSize(14);
             todoTextView.setTextColor(Color.BLACK);
             todoTextView.setMaxLines(Integer.MAX_VALUE); // Allow unlimited lines for wrapping

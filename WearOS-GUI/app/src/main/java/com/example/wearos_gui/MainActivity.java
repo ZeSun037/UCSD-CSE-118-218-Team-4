@@ -124,7 +124,7 @@ public class MainActivity extends FragmentActivity {
                     "Will", false));
             todos.add(new TodoItem("Review project milestones", TodoItem.Priority.MEDIUM,
                     Place.WORK, Time.WORKING, LocalDate.now().plusDays(5),
-                    "Chung", false));
+                    "Chuong", false));
 
             // fetch from redis
 //            todos.addAll(fetchTodosFromRedis(groupId, false));
