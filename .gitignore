@@ -3,4 +3,5 @@ restful-api/config.json
 .apikey
 */config.json
 */playground.js
-amazon
+amazon/amazon_env
+amazon/node_modules
