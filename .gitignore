@@ -1,9 +1,11 @@
 restful-api/node_modules/
+amazon/node_modules/
 restful-api/config.json
 .apikey
 */config.json
 */playground.js
 .apikey
+amazon/amazon_env
 
 */config.json
 
