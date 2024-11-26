@@ -1,19 +1,20 @@
-const express = require("express");
-const websocket = require('express-ws');
+const express = require('express');
+const echoRouter = require('./routers/echoRouter')
+const watchRouter = require('./routers/watchRouter')
+
 const app = express();
-const socketApp = websocket(app);
+
+app.use(express.json()); 
+app.use(express.urlencoded({extended: false}));
 
 //TODO: Implement Get function
 app.get('/', (req, res) => {
-    res.send('Hello World');  
-  });
-
-//TODO: Implement Post function
-app.post('/submit-item', (req, res) => {
-res.send('TODO item submitted');
+  res.send('Hello World');  
 });
 
-socketApp(app);
+app.use('/echo', echoRouter);
+
+app.use('/watch', watchRouter);
 
 const port = 3000;
 

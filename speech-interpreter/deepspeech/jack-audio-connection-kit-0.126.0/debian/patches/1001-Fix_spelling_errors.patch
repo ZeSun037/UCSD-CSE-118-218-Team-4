@@ -1,0 +1,87 @@
+From: Dennis Braun <snd@debian.org>
+Date: Fri, 6 Jan 2023 22:29:27 +0100
+Subject: Fix several spelling errors reported by lintian
+
+Forwarded: yes
+---
+ config/os/gnu-linux/sanitycheck.c | 2 +-
+ drivers/netjack/netjack_packet.c  | 2 +-
+ jackd/controlapi.c                | 2 +-
+ jackd/engine.c                    | 2 +-
+ jackd/jackd.1.in                  | 4 ++--
+ 5 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/config/os/gnu-linux/sanitycheck.c b/config/os/gnu-linux/sanitycheck.c
+index f8449f2..5e57b9b 100644
+--- a/config/os/gnu-linux/sanitycheck.c
++++ b/config/os/gnu-linux/sanitycheck.c
+@@ -59,7 +59,7 @@ int sanitycheck (int care_about_realtime,
+ 		fprintf (stderr, "\n--------------------------------------------------------------------------------\n");
+ 		fprintf (stderr, "WARNING: Your system seems to use frequency scaling.\n\n");
+ 		fprintf (stderr, "   This can have a serious impact on audio latency. You have two choices:\n");
+-		fprintf (stderr, "\t(1)turn it off, e.g. by chosing the 'performance' governor.\n");
++		fprintf (stderr, "\t(1)turn it off, e.g. by choosing the 'performance' governor.\n");
+ 		fprintf (stderr, "\t(2)Use the HPET clocksource by passing \"-c h\" to JACK\n");
+ 		fprintf (stderr, "\t   (this second option only works on relatively recent computers)\n");
+ 		fprintf (stderr, "--------------------------------------------------------------------------------\n\n");
+diff --git a/drivers/netjack/netjack_packet.c b/drivers/netjack/netjack_packet.c
+index dd541c3..65336d8 100644
+--- a/drivers/netjack/netjack_packet.c
++++ b/drivers/netjack/netjack_packet.c
+@@ -319,7 +319,7 @@ cache_packet_add_fragment (cache_packet *pack, char *packet_buf, int rcv_len)
+ 	jack_nframes_t framecnt    = ntohl (pkthdr->framecnt);
+ 
+ 	if (framecnt != pack->framecnt) {
+-		jack_error ("errror. framecnts dont match");
++		jack_error ("error. framecnts don't match");
+ 		return;
+ 	}
+ 
+diff --git a/jackd/controlapi.c b/jackd/controlapi.c
+index a117e20..e9dcb62 100644
+--- a/jackd/controlapi.c
++++ b/jackd/controlapi.c
+@@ -1026,7 +1026,7 @@ jackctl_server_t * jackctl_server_create (
+ 		    &server_ptr->parameters,
+ 		    'Z',
+ 		    "nozombies",
+-		    "dont zombifiy offending clients",
++		    "don't zombifiy offending clients",
+ 		    "",
+ 		    JackParamBool,
+ 		    &server_ptr->nozombies,
+diff --git a/jackd/engine.c b/jackd/engine.c
+index 1235815..c505062 100644
+--- a/jackd/engine.c
++++ b/jackd/engine.c
+@@ -3833,7 +3833,7 @@ jack_port_do_connect (jack_engine_t *engine,
+ 	}
+ 
+ 	if (srcport->shared->ptype_id != dstport->shared->ptype_id) {
+-		jack_error ("ports used in attemped connection are not of "
++		jack_error ("ports used in attempted connection are not of "
+ 			    "the same data type");
+ 		return -1;
+ 	}
+diff --git a/jackd/jackd.1.in b/jackd/jackd.1.in
+index 6b86210..965ceb7 100644
+--- a/jackd/jackd.1.in
++++ b/jackd/jackd.1.in
+@@ -182,7 +182,7 @@ This cancels the effect any specified timeout value.
+ \fB\-C, \-\-timeout-thres \fItime\fR
+ .br
+ Stop processing clients if JACK cannot complete the process cycle in time (typically caused by CPU overloading or misbehaved clients). The optional \fItime\fR 
+-argument specifies the number of miliseconds, during which consectutive process cycles must fail before JACK gives up (if the argument is not given, it defaults to 250). Processing will resume on the next change to the port 
++argument specifies the number of milliseconds, during which consectutive process cycles must fail before JACK gives up (if the argument is not given, it defaults to 250). Processing will resume on the next change to the port 
+ graph (i.e. a port is added, removed, connected or disconnected)
+ .TP
+ \fB\-u, \-\-unlock\fR
+@@ -412,7 +412,7 @@ Whether to use Autoconfig, or just start. (default: true)
+ Send packets N times (default: 1)
+ .TP 
+ \fB\-e, \-\-native\-endian \fIint\fR
+-Dont convert samples to network byte order. (default: false)
++Don't convert samples to network byte order. (default: false)
+ .TP 
+ \fB\-J, \-\-jitterval \fIint\fR
+ attempted jitterbuffer microseconds on master (default: 0)
