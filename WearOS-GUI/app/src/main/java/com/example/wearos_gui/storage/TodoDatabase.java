@@ -69,6 +69,12 @@ public class TodoDatabase {
         saveTodos(todos);
     }
 
+    public void removeTodoList() {
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.remove("todo_list");
+        editor.apply();
+    }
+
     private void saveTodos(List<TodoItem> todos) {
         Gson gson = new Gson();
         SharedPreferences.Editor editor = sharedPreferences.edit();
