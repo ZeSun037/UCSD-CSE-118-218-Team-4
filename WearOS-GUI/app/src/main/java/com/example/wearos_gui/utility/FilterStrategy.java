@@ -1,10 +1,7 @@
-package com.example.wearos_gui;
+package com.example.wearos_gui.utility;
 
 import com.example.wearos_gui.entity.TodoItem;
 
-import java.time.DayOfWeek;
-import java.time.LocalDate;
-import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.stream.Collectors;
 

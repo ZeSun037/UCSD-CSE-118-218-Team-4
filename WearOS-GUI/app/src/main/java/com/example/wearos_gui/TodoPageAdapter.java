@@ -6,7 +6,10 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 
 import com.example.wearos_gui.entity.TodoItem;
+import com.example.wearos_gui.entity.User;
 import com.example.wearos_gui.storage.TodoDatabase;
+import com.example.wearos_gui.utility.FilterFactory;
+import com.example.wearos_gui.utility.FilteredTodoFragment;
 
 import java.util.List;
 
@@ -14,12 +17,21 @@ public class TodoPageAdapter extends FragmentStateAdapter {
     private List<TodoItem> todoItems; // Current list of to-do items
     private String currentFilter;    // Keeps track of the current filter ("Personal" or "Group")
     private TodoDatabase todoDatabase;
+    private User user;
+    private double lat;
+    private double lng;
+    private long time;
 
-    public TodoPageAdapter(FragmentActivity fa, List<TodoItem> todoItems, TodoDatabase todoDatabase) {
+    public TodoPageAdapter(FragmentActivity fa, List<TodoItem> todoItems, TodoDatabase todoDatabase,
+                           User user, double lat, double lng, long time) {
         super(fa);
         this.todoItems = todoItems;
         this.currentFilter = "Personal"; // Default filter
         this.todoDatabase = todoDatabase;
+        this.user = user;
+        this.lat = lat;
+        this.lng = lng;
+        this.time = time;
     }
 
     public void updateItems(List<TodoItem> newItems, String filter, TodoDatabase todoDatabase) {
@@ -35,15 +47,19 @@ public class TodoPageAdapter extends FragmentStateAdapter {
         switch (position) {
             case 0: // Personal to-dos
                 if ("Personal".equals(currentFilter)) {
-                    return new FilteredTodoFragment(FilterFactory.getFilter("Personal"), todoItems, this.todoDatabase);
+                    return new FilteredTodoFragment(FilterFactory.getFilter("Personal"),
+                            todoItems, this.todoDatabase, this.user, this.lat, this.lng, this.time);
                 } else { // If user toggles while on a "Personal" tab
-                    return new FilteredTodoFragment(FilterFactory.getFilter("Group"), todoItems, this.todoDatabase);
+                    return new FilteredTodoFragment(FilterFactory.getFilter("Group"),
+                            todoItems, this.todoDatabase, this.user, this.lat, this.lng, this.time);
                 }
             case 1: // Group to-dos
                 if ("Group".equals(currentFilter)) {
-                    return new FilteredTodoFragment(FilterFactory.getFilter("Group"), todoItems, this.todoDatabase);
+                    return new FilteredTodoFragment(FilterFactory.getFilter("Group"),
+                            todoItems, this.todoDatabase, this.user, this.lat, this.lng, this.time);
                 } else { // If user toggles while on a "Group" tab
-                    return new FilteredTodoFragment(FilterFactory.getFilter("Personal"), todoItems, this.todoDatabase);
+                    return new FilteredTodoFragment(FilterFactory.getFilter("Personal"),
+                            todoItems, this.todoDatabase, this.user, this.lat, this.lng, this.time);
                 }
             default:
                 throw new IllegalStateException("Invalid position for fragment creation");

@@ -1,4 +1,4 @@
-package com.example.wearos_gui;
+package com.example.wearos_gui.utility;
 
 import android.graphics.Color;
 import android.os.Bundle;
@@ -15,7 +15,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.example.wearos_gui.R;
 import com.example.wearos_gui.entity.TodoItem;
+import com.example.wearos_gui.entity.User;
 import com.example.wearos_gui.storage.TodoDatabase;
 
 import java.util.ArrayList;
@@ -25,11 +27,20 @@ public class FilteredTodoFragment extends Fragment {
     private FilterStrategy filterStrategy;
     private List<TodoItem> allTodoItems;
     private TodoDatabase todoDatabase;
+    private User user;
+    private double lat;
+    private double lng;
+    private long time;
 
-    public FilteredTodoFragment(FilterStrategy filterStrategy, List<TodoItem> allTodoItems, TodoDatabase database) {
+    public FilteredTodoFragment(FilterStrategy filterStrategy, List<TodoItem> allTodoItems, TodoDatabase database,
+                                User user, double lat, double lng, long time) {
         this.filterStrategy = filterStrategy;
         this.allTodoItems = allTodoItems;
         this.todoDatabase = database;
+        this.user = user;
+        this.lat = lat;
+        this.lng = lng;
+        this.time = time;
     }
 
     @Nullable
@@ -94,6 +105,7 @@ public class FilteredTodoFragment extends Fragment {
                 notDoneItems.add(item);
             }
         }
+        TodoSorter.sortNotDoneItems(notDoneItems, this.user, lat, lng, time);
 
         // Create and add "Not Done" header and items
         addSectionHeader(todoListContainer, "Not Done", notDoneItems.size());

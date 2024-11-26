@@ -1,10 +1,8 @@
-package com.example.wearos_gui;
+package com.example.wearos_gui.utility;
 
 import com.example.wearos_gui.entity.Place;
 import com.example.wearos_gui.entity.Time;
 import com.example.wearos_gui.entity.TodoItem;
-
-import java.time.LocalDate;
 
 public class TodoSerializer {
     public static String serializeTodoItem(TodoItem todoItem) {

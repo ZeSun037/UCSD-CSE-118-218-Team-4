@@ -48,6 +48,8 @@ dependencies {
     implementation(libs.wear)
     implementation(libs.material)
     implementation(libs.jedis)
+    implementation("com.google.android.gms:play-services-location:21.0.1")
+
 
     // JUnit 4 dependencies for Android Instrumentation tests
     androidTestImplementation(libs.junit)          // JUnit 4

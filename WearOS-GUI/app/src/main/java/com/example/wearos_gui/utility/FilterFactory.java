@@ -1,4 +1,4 @@
-package com.example.wearos_gui;
+package com.example.wearos_gui.utility;
 
 public class FilterFactory {
     public static FilterStrategy getFilter(String filterType) {
