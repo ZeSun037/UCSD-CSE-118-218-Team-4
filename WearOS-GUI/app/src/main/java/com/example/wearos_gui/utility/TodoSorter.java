@@ -1,5 +1,8 @@
 package com.example.wearos_gui.utility;
 
+import android.util.Log;
+
+import com.example.wearos_gui.entity.LocationRange;
 import com.example.wearos_gui.entity.Place;
 import com.example.wearos_gui.entity.Time;
 import com.example.wearos_gui.entity.TodoItem;
@@ -9,6 +12,7 @@ import com.example.wearos_gui.mapper.TimeMapper;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 public class TodoSorter {
     private final static double PRIORITY_WEIGHT = 0.5;

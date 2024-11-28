@@ -1,5 +1,7 @@
 package com.example.wearos_gui;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
@@ -23,14 +25,12 @@ public class TodoPageAdapter extends FragmentStateAdapter {
     private long time;
 
     public TodoPageAdapter(FragmentActivity fa, List<TodoItem> todoItems, TodoDatabase todoDatabase,
-                           User user, double lat, double lng, long time) {
+                           User user, long time) {
         super(fa);
         this.todoItems = todoItems;
         this.currentFilter = "Personal"; // Default filter
         this.todoDatabase = todoDatabase;
         this.user = user;
-        this.lat = lat;
-        this.lng = lng;
         this.time = time;
     }
 

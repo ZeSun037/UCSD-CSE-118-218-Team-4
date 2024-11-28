@@ -56,6 +56,15 @@ public class FilteredTodoFragment extends Fragment {
         renderTodoList(view);
     }
 
+    public void updateLocation(double lat, double lng) {
+        this.lat = lat;
+        this.lng = lng;
+
+        if (getView() != null) {
+            renderTodoList(getView());
+        }
+    }
+
     private void renderTodoList(View view) {
         LinearLayout todoListContainer = view.findViewById(R.id.todoListContainer);
         todoListContainer.removeAllViews();

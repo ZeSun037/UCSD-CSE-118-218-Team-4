@@ -13,12 +13,15 @@ import android.os.Bundle;
 import android.os.Looper;
 import android.provider.Settings;
 import android.util.Log;
+import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 import android.Manifest;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.viewpager2.widget.ViewPager2;
 
@@ -30,6 +33,7 @@ import com.example.wearos_gui.entity.TodoItem;
 import com.example.wearos_gui.entity.User;
 import com.example.wearos_gui.storage.TodoDatabase;
 import com.example.wearos_gui.storage.UserData;
+import com.example.wearos_gui.utility.FilteredTodoFragment;
 import com.example.wearos_gui.utility.RedisHelper;
 import com.example.wearos_gui.utility.TodoSerializer;
 import com.google.android.gms.location.LocationRequest;
@@ -80,8 +84,6 @@ public class MainActivity extends FragmentActivity {
         user = createUser();
         String groupId = "Group 4";
 
-        getCurrentLocation();
-
         viewPager = findViewById(R.id.viewPager);
         TabLayout tabLayout = findViewById(R.id.tabLayout);
 
@@ -93,7 +95,9 @@ public class MainActivity extends FragmentActivity {
         long curTime = System.currentTimeMillis();
 
         // Set up adapter for ViewPager
-        adapter = new TodoPageAdapter(this, personalTodoItems, persoanlTodoDatabase, user, lat, lng, curTime);
+        adapter = new TodoPageAdapter(this, personalTodoItems, persoanlTodoDatabase, user, curTime);
+        getCurrentLocation();
+
         viewPager.setAdapter(adapter);
 
         // Attach TabLayout to ViewPager
@@ -122,17 +126,17 @@ public class MainActivity extends FragmentActivity {
     }
 
     private List<TodoItem> fetchPersonalTodos() {
-        persoanlTodoDatabase = new TodoDatabase(this, "personalTodo3");
+        persoanlTodoDatabase = new TodoDatabase(this, "personalTodoTemp");
         List<TodoItem> todoItems = persoanlTodoDatabase.getAllTodos();
         if (todoItems.isEmpty()) {
             // Create a mock to-do list for testing
             List<TodoItem> todos = new ArrayList<>();
             todos.add(new TodoItem("Buy concert ticket", TodoItem.Priority.MEDIUM,
-                    Place.GENERAL, Time.GENERAL, LocalDate.now(), "", true));
+                    Place.GENERAL, Time.GENERAL, LocalDate.now(), "", false));
+            todos.add(new TodoItem("Buy groceries", TodoItem.Priority.LOW,
+                    Place.STORE, Time.WORKING, LocalDate.now(), "",false));
             todos.add(new TodoItem("Submit next week's progress", TodoItem.Priority.LOW,
                     Place.SCHOOL, Time.WORKING, LocalDate.now(), "",false));
-            todos.add(new TodoItem("Buy groceries", TodoItem.Priority.HIGH,
-                    Place.STORE, Time.WORKING, LocalDate.now(), "",false));
 
             // fetch from redis
             todos.addAll(RedisHelper.getTodos(user.getId()));
@@ -142,7 +146,7 @@ public class MainActivity extends FragmentActivity {
             }
             return todos;
         } else {
-            for (TodoItem item: fetchTodosFromRedis(user.getId(), true)) {
+            for (TodoItem item: RedisHelper.getTodos(user.getId())) {
                 persoanlTodoDatabase.insertTodo(item);
             }
             return todoItems;
@@ -170,7 +174,7 @@ public class MainActivity extends FragmentActivity {
             }
             return todos;
         } else {
-            for (TodoItem item: fetchTodosFromRedis(groupId, false)) {
+            for (TodoItem item: RedisHelper.getTodos(groupId)) {
                 groupTodoDatabase.insertTodo(item);
             }
             return todoItems;
@@ -202,79 +206,51 @@ public class MainActivity extends FragmentActivity {
         }
     }
 
-    private List<TodoItem> fetchTodosFromRedis(String key, boolean isPersonal) {
-        Jedis jedis;
-        try {
-            jedis = new Jedis(redisHost, redistPort);
-            List<String> todoJsonList = jedis.lrange(key, 0, -1);
-            List<TodoItem> todoItems = new ArrayList<>();
-
-            // Deserialize each String into a TodoItem object
-            for (String todoJson : todoJsonList) {
-                TodoItem todoItem = TodoSerializer.deserializeTodoItem(todoJson);
-                todoItems.add(todoItem);
-            }
-
-            // Delete all values for personal todos
-            if (isPersonal) {
-                jedis.del(key);
-            }
-
-            jedis.close();
-            return todoItems;
-        } catch (Exception e) {
-            log.debug(e.toString());
-        }
-        return Collections.emptyList();
-    }
-
     private void getCurrentLocation() {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
+        ProgressBar loadingSpinner = findViewById(R.id.locationLoading);
+        loadingSpinner.setVisibility(View.VISIBLE);
+
         // Check location permission
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-            != PackageManager.PERMISSION_GRANTED) {
+                != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     LOCATION_PERMISSION_REQUEST_CODE);
+            loadingSpinner.setVisibility(View.GONE); // Hide spinner if permission is denied
             return;
         }
-        
+
         LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         if (!isLocationEnabled(locationManager)) {
+            loadingSpinner.setVisibility(View.GONE); // Hide spinner if location is disabled
             showLocationEnableDialog();
             return;
         }
 
-        // Create location request
-        LocationRequest locationRequest = LocationRequest.create()
-                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
-                .setInterval(10000) .setFastestInterval(5000);
-
-        // Location callback to handle location updates
-        locationCallback = new LocationCallback() {
-            @Override
-            public void onLocationResult(@NonNull LocationResult locationResult) {
-                Location location = locationResult.getLastLocation();
-                if (location != null) {
+        // Use getCurrentLocation for faster, one-time location request
+        fusedLocationClient.getCurrentLocation(LocationRequest.PRIORITY_HIGH_ACCURACY, null)
+            .addOnCompleteListener(task -> {
+                loadingSpinner.setVisibility(View.GONE); // Hide spinner after getting location
+                if (task.isSuccessful() && task.getResult() != null) {
+                    Location location = task.getResult();
                     lat = location.getLatitude();
                     lng = location.getLongitude();
-                    // Stop location updates after getting the location
-                    fusedLocationClient.removeLocationUpdates(locationCallback);
 
-//                    // Update the adapter with new location
-//                    if (adapter != null) {
-//                        adapter.updateLocation(lat, lng);
-//                    }
+                    // Update the fragment with new location
+                    int currentPosition = viewPager.getCurrentItem();
+                    Fragment fragment = getSupportFragmentManager().findFragmentByTag("f" + currentPosition);
+
+                    if (fragment instanceof FilteredTodoFragment) {
+                        ((FilteredTodoFragment) fragment).updateLocation(lat, lng);
+                    }
 
                     Log.d("Location", "Latitude: " + lat + ", Longitude: " + lng);
                 } else {
-                    Log.d("Location Error", "location is null");
+                    Toast.makeText(this, "Unable to fetch location. Please try again.",
+                            Toast.LENGTH_SHORT).show();
                 }
-            }
-        };
-
-        // Request location updates
-        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper());
+            });
     }
 
     private void showLocationEnableDialog() {
