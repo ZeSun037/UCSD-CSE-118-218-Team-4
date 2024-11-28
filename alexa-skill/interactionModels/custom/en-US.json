@@ -1,0 +1,127 @@
+{
+  "interactionModel": {
+    "dialog": {
+      "intents": [
+        {
+          "slots": [
+            {
+              "name": "catchAll",
+              "elicitationRequired": true,
+              "type": "AMAZON.SearchQuery",
+              "confirmationRequired": false,
+              "prompts": {
+                "elicitation": "Elicit.Slot.1389848351073.825780220731"
+              }
+            }
+          ],
+          "name": "HelloWorldIntent",
+          "confirmationRequired": false,
+          "prompts": {}
+        },
+        {
+          "slots": [
+            {
+              "name": "catchAll",
+              "elicitationRequired": true,
+              "type": "AMAZON.SearchQuery",
+              "confirmationRequired": false,
+              "prompts": {
+                "elicitation": "Elicit.Slot.1536756426672.1592623807488"
+              }
+            }
+          ],
+          "name": "AddTaskIntent",
+          "confirmationRequired": false,
+          "prompts": {}
+        }
+      ],
+      "delegationStrategy": "ALWAYS"
+    },
+    "languageModel": {
+      "intents": [
+        {
+          "name": "AMAZON.CancelIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.HelpIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.StopIntent",
+          "samples": [
+            "have a nice day",
+            "Thank you",
+            "I am good",
+            "done"
+          ]
+        },
+        {
+          "slots": [
+            {
+              "name": "catchAll",
+              "type": "AMAZON.SearchQuery",
+              "samples": [
+                "{catchAll}"
+              ]
+            }
+          ],
+          "name": "HelloWorldIntent",
+          "samples": [
+            "hello",
+            "how are you",
+            "say hi world",
+            "say hi",
+            "hi",
+            "say hello world",
+            "say hello"
+          ]
+        },
+        {
+          "name": "AMAZON.NavigateHomeIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.FallbackIntent",
+          "samples": []
+        },
+        {
+          "slots": [
+            {
+              "name": "catchAll",
+              "type": "AMAZON.SearchQuery"
+            }
+          ],
+          "name": "AddTaskIntent",
+          "samples": [
+            "sure",
+            "yes please",
+            "yes"
+          ]
+        }
+      ],
+      "types": [],
+      "invocationName": "my lab"
+    },
+    "prompts": [
+      {
+        "variations": [
+          {
+            "type": "PlainText",
+            "value": "To add a task, please indicate the task, assignee, and which to-do list."
+          }
+        ],
+        "id": "Elicit.Slot.1389848351073.825780220731"
+      },
+      {
+        "variations": [
+          {
+            "type": "PlainText",
+            "value": "please add your task"
+          }
+        ],
+        "id": "Elicit.Slot.1536756426672.1592623807488"
+      }
+    ]
+  }
+}

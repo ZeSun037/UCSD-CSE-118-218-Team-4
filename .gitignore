@@ -8,6 +8,7 @@ restful-api/config.json
 amazon/amazon_env
 
 */config.json
+alexa-skill/lambda/config.js
 
 speech-interpreter/deepspeech/*.pbmm
 speech-interpreter/deepspeech/*.scorer
