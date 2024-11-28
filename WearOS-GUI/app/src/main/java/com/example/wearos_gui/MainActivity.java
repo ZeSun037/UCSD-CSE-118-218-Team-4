@@ -1,6 +1,5 @@
 package com.example.wearos_gui;
 
-import static androidx.core.location.LocationManagerCompat.getCurrentLocation;
 import static androidx.core.location.LocationManagerCompat.isLocationEnabled;
 
 import android.app.AlertDialog;
@@ -10,7 +9,6 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.os.Looper;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
@@ -35,8 +33,8 @@ import com.example.wearos_gui.storage.TodoDatabase;
 import com.example.wearos_gui.storage.UserData;
 import com.example.wearos_gui.utility.FilteredTodoFragment;
 import com.example.wearos_gui.utility.RedisHelper;
-import com.example.wearos_gui.utility.TodoSerializer;
 import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.Priority;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
@@ -45,25 +43,18 @@ import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import redis.clients.jedis.Jedis;
-
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
+
 
 public class MainActivity extends FragmentActivity {
-    private static final String redisHost = "83.149.103.151";
-    private static final int redistPort = 6379;
     private static final Logger log = LoggerFactory.getLogger(MainActivity.class);
+    private static final String groupId = "Group 4";
     private ViewPager2 viewPager;
     private TodoPageAdapter adapter;
     private List<TodoItem> personalTodoItems;
@@ -72,8 +63,6 @@ public class MainActivity extends FragmentActivity {
     private List<TodoItem> groupTodoItems;
     private User user;
     private FusedLocationProviderClient fusedLocationClient;
-    private LocationCallback locationCallback;
-
     private double lat = 0.0, lng = 0.0;
 
     @Override
@@ -81,8 +70,8 @@ public class MainActivity extends FragmentActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Initialize user and UI elements
         user = createUser();
-        String groupId = "Group 4";
 
         viewPager = findViewById(R.id.viewPager);
         TabLayout tabLayout = findViewById(R.id.tabLayout);
@@ -91,13 +80,8 @@ public class MainActivity extends FragmentActivity {
         personalTodoItems = fetchPersonalTodos();
         groupTodoItems = fetchGroupTodos(groupId);
 
-        // Get current time and location
-        long curTime = System.currentTimeMillis();
-
         // Set up adapter for ViewPager
-        adapter = new TodoPageAdapter(this, personalTodoItems, persoanlTodoDatabase, user, curTime);
-        getCurrentLocation();
-
+        adapter = new TodoPageAdapter(this, personalTodoItems, persoanlTodoDatabase, user);
         viewPager.setAdapter(adapter);
 
         // Attach TabLayout to ViewPager
@@ -121,9 +105,23 @@ public class MainActivity extends FragmentActivity {
                 }
             }
         });
-//        TodoPageAdapter adapter = new TodoPageAdapter(this, todoItems);
-//        viewPager.setAdapter(adapter);
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        // Get current time and location and update user object
+        getCurrentLocation();
+
+        // Monitor cognitive load
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BODY_SENSORS) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BODY_SENSORS}, REQUEST_BODY_SENSORS_PERMISSION);
+        } else {
+            startTodoNotificationService();
+        }
+    }
+
 
     private List<TodoItem> fetchPersonalTodos() {
         persoanlTodoDatabase = new TodoDatabase(this, "personalTodoTemp");
@@ -166,7 +164,7 @@ public class MainActivity extends FragmentActivity {
                     Place.WORK, Time.WORKING, LocalDate.now().plusDays(5),
                     "Chuong", false));
 
-            // fetch from redis
+            // Fetch from redis
             todos.addAll(RedisHelper.getTodos(groupId));
 
             for (TodoItem item: todos) {
@@ -229,7 +227,7 @@ public class MainActivity extends FragmentActivity {
         }
 
         // Use getCurrentLocation for faster, one-time location request
-        fusedLocationClient.getCurrentLocation(LocationRequest.PRIORITY_HIGH_ACCURACY, null)
+        fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
             .addOnCompleteListener(task -> {
                 loadingSpinner.setVisibility(View.GONE); // Hide spinner after getting location
                 if (task.isSuccessful() && task.getResult() != null) {
@@ -240,9 +238,8 @@ public class MainActivity extends FragmentActivity {
                     // Update the fragment with new location
                     int currentPosition = viewPager.getCurrentItem();
                     Fragment fragment = getSupportFragmentManager().findFragmentByTag("f" + currentPosition);
-
                     if (fragment instanceof FilteredTodoFragment) {
-                        ((FilteredTodoFragment) fragment).updateLocation(lat, lng);
+                        ((FilteredTodoFragment) fragment).updateLocationAndTime(lat, lng, System.currentTimeMillis());
                     }
 
                     Log.d("Location", "Latitude: " + lat + ", Longitude: " + lng);
@@ -269,14 +266,26 @@ public class MainActivity extends FragmentActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Permission granted, try to get location again
                 getCurrentLocation();
             } else {
-                Toast.makeText(this, "Location permission denied", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Location permission denied！", Toast.LENGTH_SHORT).show();
+            }
+        } else if (requestCode == REQUEST_BODY_SENSORS_PERMISSION) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                startTodoNotificationService();
+            } else {
+                Toast.makeText(this, "Permission denied!", Toast.LENGTH_SHORT).show();
             }
         }
     }
 
+    private void startTodoNotificationService() {
+        // Start the TodoNotificationService to begin monitoring cognitive load
+        Intent serviceIntent = new Intent(this, TodoNotificationService.class);
+        startService(serviceIntent);
+    }
+
+    private static final int REQUEST_BODY_SENSORS_PERMISSION = 1;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 100;
 }
 

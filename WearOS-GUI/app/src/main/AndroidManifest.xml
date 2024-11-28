@@ -3,6 +3,7 @@
 
     <uses-feature android:name="android.hardware.type.watch" />
 
+    <uses-permission android:name="android.permission.BODY_SENSORS"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
@@ -16,13 +17,16 @@
             android:name="com.google.android.wearable.standalone"
             android:value="true" />
 
+        <service android:name=".TodoNotificationService"
+            android:enabled="true"
+            android:exported="false"/>
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:theme="@style/Theme.MaterialComponents.DayNight"
             android:taskAffinity="com.example.wearos_gui.task">
 
-        <!-- MainActivity as the launcher activity -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

@@ -2,6 +2,7 @@ package com.example.wearos_gui.utility;
 
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -33,14 +34,11 @@ public class FilteredTodoFragment extends Fragment {
     private long time;
 
     public FilteredTodoFragment(FilterStrategy filterStrategy, List<TodoItem> allTodoItems, TodoDatabase database,
-                                User user, double lat, double lng, long time) {
+                                User user) {
         this.filterStrategy = filterStrategy;
         this.allTodoItems = allTodoItems;
         this.todoDatabase = database;
         this.user = user;
-        this.lat = lat;
-        this.lng = lng;
-        this.time = time;
     }
 
     @Nullable
@@ -56,13 +54,15 @@ public class FilteredTodoFragment extends Fragment {
         renderTodoList(view);
     }
 
-    public void updateLocation(double lat, double lng) {
+    public void updateLocationAndTime(double lat, double lng, long curTime) {
         this.lat = lat;
         this.lng = lng;
+        this.time = curTime;
 
         if (getView() != null) {
             renderTodoList(getView());
         }
+        Log.d("DEBUG", "Updating location and time");
     }
 
     private void renderTodoList(View view) {

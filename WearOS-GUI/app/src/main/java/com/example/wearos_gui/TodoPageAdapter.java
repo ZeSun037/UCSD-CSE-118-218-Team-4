@@ -20,18 +20,14 @@ public class TodoPageAdapter extends FragmentStateAdapter {
     private String currentFilter;    // Keeps track of the current filter ("Personal" or "Group")
     private TodoDatabase todoDatabase;
     private User user;
-    private double lat;
-    private double lng;
-    private long time;
 
     public TodoPageAdapter(FragmentActivity fa, List<TodoItem> todoItems, TodoDatabase todoDatabase,
-                           User user, long time) {
+                           User user) {
         super(fa);
         this.todoItems = todoItems;
         this.currentFilter = "Personal"; // Default filter
         this.todoDatabase = todoDatabase;
         this.user = user;
-        this.time = time;
     }
 
     public void updateItems(List<TodoItem> newItems, String filter, TodoDatabase todoDatabase) {
@@ -48,18 +44,18 @@ public class TodoPageAdapter extends FragmentStateAdapter {
             case 0: // Personal to-dos
                 if ("Personal".equals(currentFilter)) {
                     return new FilteredTodoFragment(FilterFactory.getFilter("Personal"),
-                            todoItems, this.todoDatabase, this.user, this.lat, this.lng, this.time);
+                            todoItems, this.todoDatabase, this.user);
                 } else { // If user toggles while on a "Personal" tab
                     return new FilteredTodoFragment(FilterFactory.getFilter("Group"),
-                            todoItems, this.todoDatabase, this.user, this.lat, this.lng, this.time);
+                            todoItems, this.todoDatabase, this.user);
                 }
             case 1: // Group to-dos
                 if ("Group".equals(currentFilter)) {
                     return new FilteredTodoFragment(FilterFactory.getFilter("Group"),
-                            todoItems, this.todoDatabase, this.user, this.lat, this.lng, this.time);
+                            todoItems, this.todoDatabase, this.user);
                 } else { // If user toggles while on a "Group" tab
                     return new FilteredTodoFragment(FilterFactory.getFilter("Personal"),
-                            todoItems, this.todoDatabase, this.user, this.lat, this.lng, this.time);
+                            todoItems, this.todoDatabase, this.user);
                 }
             default:
                 throw new IllegalStateException("Invalid position for fragment creation");
