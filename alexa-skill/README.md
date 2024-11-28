@@ -22,3 +22,10 @@
                     └── Intent Slots: Name - catchAll, Slot Type - AMAZON.SearchQuery
                         ├── Alexa speech prompts: please add your task
                         └── User Utterances: {catchAll}
+
+# Current Directory
+    alexa-skill/
+        └── lambda/
+            └── config.js   # to add
+                ├── const OPENAI_API_KEY = ""
+                └── module.exports = {OPENAI_API_KEY};
