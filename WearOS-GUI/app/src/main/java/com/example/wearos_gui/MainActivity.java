@@ -3,11 +3,14 @@ package com.example.wearos_gui;
 import static androidx.core.location.LocationManagerCompat.isLocationEnabled;
 
 import android.app.AlertDialog;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
@@ -17,6 +20,7 @@ import android.widget.Toast;
 import android.Manifest;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
@@ -33,6 +37,7 @@ import com.example.wearos_gui.storage.TodoDatabase;
 import com.example.wearos_gui.storage.UserData;
 import com.example.wearos_gui.utility.FilteredTodoFragment;
 import com.example.wearos_gui.utility.RedisHelper;
+import com.example.wearos_gui.utility.UserManager;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.Priority;
 import com.google.android.material.tabs.TabLayout;
@@ -48,12 +53,10 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationServices;
 
 
 public class MainActivity extends FragmentActivity {
-    private static final Logger log = LoggerFactory.getLogger(MainActivity.class);
     private static final String groupId = "Group 4";
     private ViewPager2 viewPager;
     private TodoPageAdapter adapter;
@@ -72,6 +75,7 @@ public class MainActivity extends FragmentActivity {
 
         // Initialize user and UI elements
         user = createUser();
+        UserManager.getInstance().setUser(user);
 
         viewPager = findViewById(R.id.viewPager);
         TabLayout tabLayout = findViewById(R.id.tabLayout);
@@ -118,7 +122,10 @@ public class MainActivity extends FragmentActivity {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.BODY_SENSORS) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.BODY_SENSORS}, REQUEST_BODY_SENSORS_PERMISSION);
         } else {
-            startTodoNotificationService();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                startTodoNotificationService();
+            }
+            createNotificationChannel();
         }
     }
 
@@ -272,14 +279,45 @@ public class MainActivity extends FragmentActivity {
             }
         } else if (requestCode == REQUEST_BODY_SENSORS_PERMISSION) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                startTodoNotificationService();
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    startTodoNotificationService();
+                }
             } else {
                 Toast.makeText(this, "Permission denied!", Toast.LENGTH_SHORT).show();
             }
         }
     }
 
+    private void createNotificationChannel() {
+        // Notification channel ID
+        String channelId = "todo_channel";
+        CharSequence channelName = "To-Do Notifications";
+        int importance = NotificationManager.IMPORTANCE_DEFAULT;
+
+        // Create the channel
+        NotificationChannel channel = new NotificationChannel(channelId, channelName, importance);
+
+        // Customize channel (optional)
+        channel.setDescription("Channel for to-do list notifications");
+
+        // Register the channel with the system
+        NotificationManager notificationManager = getSystemService(NotificationManager.class);
+        if (notificationManager != null) {
+            notificationManager.createNotificationChannel(channel);
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
     private void startTodoNotificationService() {
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                    this,
+                    new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                    REQUEST_NOTIFICATION_PERMISSION
+            );
+            return;
+        }
+
         // Start the TodoNotificationService to begin monitoring cognitive load
         Intent serviceIntent = new Intent(this, TodoNotificationService.class);
         startService(serviceIntent);
@@ -287,6 +325,7 @@ public class MainActivity extends FragmentActivity {
 
     private static final int REQUEST_BODY_SENSORS_PERMISSION = 1;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 100;
+    private static final int REQUEST_NOTIFICATION_PERMISSION = 1001;
 }
 
 

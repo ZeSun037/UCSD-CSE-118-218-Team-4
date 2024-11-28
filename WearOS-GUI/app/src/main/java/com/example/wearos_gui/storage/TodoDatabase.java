@@ -14,10 +14,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TodoDatabase {
+    private static TodoDatabase instance;
     private SharedPreferences sharedPreferences;
 
     public TodoDatabase(Context context, String key) {
         this.sharedPreferences = context.getSharedPreferences(key, Context.MODE_PRIVATE);
+    }
+
+    public static synchronized TodoDatabase getInstance(Context context, String key) {
+        if (instance == null) {
+            instance = new TodoDatabase(context, key);
+        }
+        return instance;
     }
 
     public void insertTodo(TodoItem todoItem) {
