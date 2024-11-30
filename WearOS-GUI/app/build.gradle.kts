@@ -28,10 +28,32 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+
+    packaging {
+        resources {
+            excludes += setOf(
+                "META-INF/LICENSE.md",
+                "META-INF/LICENSE-notice.md",
+                "META-INF/LICENSE.txt",
+                "META-INF/NOTICE.md",
+                "META-INF/NOTICE.txt"
+            )
+        }
+    }
 }
 
 dependencies {
+    // Core dependencies
     implementation(libs.play.services.wearable)
     implementation(libs.wear)
     implementation(libs.material)
+    implementation(libs.jedis)
+    implementation("com.google.android.gms:play-services-location:21.0.1")
+
+
+    // JUnit 4 dependencies for Android Instrumentation tests
+    androidTestImplementation(libs.junit)          // JUnit 4
+    androidTestImplementation(libs.ext.junit)      // Android JUnit extensions
+    androidTestImplementation(libs.core)           // AndroidX Test core
+    androidTestImplementation("androidx.test:runner:1.6.2")  // Test runner
 }
