@@ -1,5 +1,7 @@
 package com.example.wearos_gui.entity;
 
+import androidx.annotation.NonNull;
+
 import com.google.gson.Gson;
 
 import java.time.LocalDate;
@@ -36,6 +38,15 @@ public class TodoItem {
         this.isDone = isDone;
     }
 
+    public TodoItem(String title, Priority priority, Place place, Time time, String assignee, boolean isDone) {
+        this.title = title;
+        this.priority = priority;
+        this.place = place;
+        this.time = time;
+        this.assignee = assignee;
+        this.isDone = isDone;
+    }
+
     // Constructor without priority and place (default values)
     public TodoItem(String title) {
         this.title = title;
@@ -64,6 +75,12 @@ public class TodoItem {
     public void setDone(Boolean done) { isDone = done; }
     public String getAssignee() { return assignee; }
     public void setAssignee(String assignee) { this.assignee = assignee; }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return "Title: " + title + ", Priority: " + priority + ", Place: " + place + ", Time: " + time + ", Assignee: " + assignee + ", isDone: " + isDone;
+    }
 
 //    public boolean isDueToday(LocalDate today) {
 //        return date.equals(today);
