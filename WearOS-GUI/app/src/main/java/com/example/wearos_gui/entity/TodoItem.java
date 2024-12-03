@@ -82,6 +82,15 @@ public class TodoItem {
         return "Title: " + title + ", Priority: " + priority + ", Place: " + place + ", Time: " + time + ", Assignee: " + assignee + ", isDone: " + isDone;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (o instanceof TodoItem item) {
+            return this.getTitle().equals(item.getTitle());
+        } else {
+            return false;
+        }
+    }
+
 //    public boolean isDueToday(LocalDate today) {
 //        return date.equals(today);
 //    }

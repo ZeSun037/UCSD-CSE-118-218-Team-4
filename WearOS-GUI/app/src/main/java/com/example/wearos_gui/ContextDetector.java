@@ -5,6 +5,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.util.Log;
 
 public class ContextDetector implements SensorEventListener {
     private SensorManager sensorManager;
@@ -41,12 +42,14 @@ public class ContextDetector implements SensorEventListener {
     public void onSensorChanged(SensorEvent event) {
         if (event.sensor.getType() == Sensor.TYPE_HEART_RATE) {
             currentHeartRate = event.values[0];
+            Log.d("Heart Rate", currentHeartRate+"bpm");
         } else if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
             // Calculate movement magnitude
             float x = event.values[0];
             float y = event.values[1];
             float z = event.values[2];
             movementMagnitude = (float) Math.sqrt(x * x + y * y + z * z);
+            Log.d("Movement", movementMagnitude+"units");
         }
     }
 
@@ -55,7 +58,7 @@ public class ContextDetector implements SensorEventListener {
 
     // Method to check if user is under high cognitive load
     public boolean isHighCognitiveLoad() {
-        // Set thresholds for high cognitive load (adjust as necessary)
+        // Set thresholds for high cognitive load
         return currentHeartRate > 100 && movementMagnitude > 2.0;
     }
 }

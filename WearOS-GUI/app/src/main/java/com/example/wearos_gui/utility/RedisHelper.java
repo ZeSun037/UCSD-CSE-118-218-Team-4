@@ -16,8 +16,8 @@ public class RedisHelper {
     private static Jedis jedis;
 
     public static void init() {
-        jedis = new Jedis("", 6379);
-        System.out.println("Connected to Redis: " + jedis.ping());
+        jedis = new Jedis("83.149.103.151", 6379);
+        System.out.println("Connected to Redis.");
     }
 
     public static void close() {
@@ -27,13 +27,15 @@ public class RedisHelper {
     }
 
     public static List<TodoItem> getTodos(String key) {
+        if (jedis == null) {
+            jedis = new Jedis("83.149.103.151", 6379);
+        }
         List<TodoItem> todoItems = new ArrayList<>();
         Map<String, String> todos = jedis.hgetAll(key);
 
         for (String title : todos.keySet()) {
             String todoString = todos.get(title);
             assert todoString != null;
-//            System.out.println("todoString" + todoString);
             TodoItem convertedTodo = convertTodoFromString(todoString);
             todoItems.add(convertedTodo);
         }
@@ -42,10 +44,16 @@ public class RedisHelper {
     }
 
     public static void updateTodos(String key, TodoItem item) {
+        if (jedis == null) {
+            jedis = new Jedis("83.149.103.151", 6379);
+        }
         jedis.hset(key, item.getTitle(), item.toString());
     }
 
     public static void deleteTodo(String userId, String todoTitle) {
+        if (jedis == null) {
+            jedis = new Jedis("83.149.103.151", 6379);
+        }
          jedis.hdel(userId, todoTitle);
     }
 

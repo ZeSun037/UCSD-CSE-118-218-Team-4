@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FilteredTodoFragment extends Fragment {
-    private FilterStrategy filterStrategy;
+    private final static String GROUP_ID = "team4";
     private List<TodoItem> allTodoItems;
     private TodoDatabase todoDatabase;
     private User user;
@@ -35,7 +35,6 @@ public class FilteredTodoFragment extends Fragment {
 
     public FilteredTodoFragment(FilterStrategy filterStrategy, List<TodoItem> allTodoItems, TodoDatabase database,
                                 User user) {
-        this.filterStrategy = filterStrategy;
         this.allTodoItems = allTodoItems;
         this.todoDatabase = database;
         this.user = user;
@@ -198,8 +197,9 @@ public class FilteredTodoFragment extends Fragment {
                     // Update the database
                     todoDatabase.updateTodo(item);
 
+                    // Update the REDIS server
                     if (!item.getAssignee().isEmpty()) {
-                        // TODO: update redis if it's a group todo
+                        RedisHelper.updateTodos(GROUP_ID, item);
                     }
                 });
 

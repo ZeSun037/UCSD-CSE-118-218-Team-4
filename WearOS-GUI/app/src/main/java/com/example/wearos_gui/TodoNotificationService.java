@@ -98,12 +98,13 @@ public class TodoNotificationService extends Service {
 
         TodoSorter.sortNotDoneItems(notDoneItems, this.user, this.lat, this.lng, System.currentTimeMillis());
 
-        if (!notDoneItems.isEmpty()) {
-            TodoItem topItem = notDoneItems.get(0);
+        for (int i = 0; i < notDoneItems.size(); i++) {
+            TodoItem topItem = notDoneItems.get(i);
 
             if (isTestMode) {
                 return topItem;
             } else {
+                // TODO: can set a threshold value for notifying todo item
                 // Check the cache for this item's notification status
                 String cacheKey = String.valueOf(topItem.getTitle().hashCode());
                 long lastNotified = notificationCache.getLong(cacheKey, 0);

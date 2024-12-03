@@ -25,7 +25,7 @@ public class RedisTest {
     private Jedis jedis;
     private Context context;
     private final String userId = "123";
-    private final String groupId = "team123";
+    private final String groupId = "team4";
 
     @Before
     public void setUp() {
@@ -55,7 +55,6 @@ public class RedisTest {
 
         // Fetching and printing To-Do items for the user
         Map<String, String> todos = jedis.hgetAll(userId);
-        System.out.println("Fetched To-Do items for user " + userId + ": " + todos);
 
         // Assertions
         assertNotNull(todos);
@@ -66,11 +65,28 @@ public class RedisTest {
         assertTrue(todos.get(todo1.getTitle()).contains(todo1.getPriority().toString()));
         assertTrue(todos.get(todo2.getTitle()).contains(todo2.getPriority().toString()));
 
-        // Converting the fetched strings back to Todo objects
+        // Converting the fetched strings back to to-do objects
         for (String title : todos.keySet()) {
             String todoString = todos.get(title);
             assert todoString != null;
-            System.out.println("todoString" + todoString);
+            TodoItem convertedTodo = RedisHelper.convertTodoFromString(todoString);
+
+            // Printing the converted To-Do item
+            System.out.println("Converted To-Do: " + convertedTodo);
+            assertNotNull(convertedTodo);
+            assertEquals(title, convertedTodo.getTitle());
+        }
+    }
+
+    @Test
+    public void testgetToDos() {
+        // Fetching and printing To-Do items for the user
+        Map<String, String> todos = jedis.hgetAll(userId);
+
+        // Converting the fetched strings back to to-do objects
+        for (String title : todos.keySet()) {
+            String todoString = todos.get(title);
+            assert todoString != null;
             TodoItem convertedTodo = RedisHelper.convertTodoFromString(todoString);
 
             // Printing the converted To-Do item

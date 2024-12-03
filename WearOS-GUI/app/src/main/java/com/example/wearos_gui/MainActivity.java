@@ -43,21 +43,21 @@ import com.google.android.gms.location.Priority;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 
 
 public class MainActivity extends FragmentActivity {
-    private static final String groupId = "Group 4";
+    private static final String groupId = "team4";
     private ViewPager2 viewPager;
     private TodoPageAdapter adapter;
     private List<TodoItem> personalTodoItems;
@@ -66,6 +66,7 @@ public class MainActivity extends FragmentActivity {
     private List<TodoItem> groupTodoItems;
     private User user;
     private FusedLocationProviderClient fusedLocationClient;
+    private ScheduledExecutorService scheduler;
     private double lat = 0.0, lng = 0.0;
 
     @Override
@@ -81,8 +82,11 @@ public class MainActivity extends FragmentActivity {
         TabLayout tabLayout = findViewById(R.id.tabLayout);
 
         // Fetch personal and group to-do items
-        personalTodoItems = fetchPersonalTodos();
-        groupTodoItems = fetchGroupTodos(groupId);
+        RedisHelper.init();
+        personalTodoItems = new ArrayList<>();
+//        personalTodoItems = fetchPersonalTodos();
+        groupTodoItems = new ArrayList<>();
+//        groupTodoItems = fetchGroupTodos(groupId);
 
         // Set up adapter for ViewPager
         adapter = new TodoPageAdapter(this, personalTodoItems, persoanlTodoDatabase, user);
@@ -115,6 +119,10 @@ public class MainActivity extends FragmentActivity {
     protected void onResume() {
         super.onResume();
 
+        // Fetch Redis to-dos every 1 minute
+        RedisHelper.init();
+//        startPeriodicFetch();
+
         // Get current time and location and update user object
         getCurrentLocation();
 
@@ -129,9 +137,50 @@ public class MainActivity extends FragmentActivity {
         }
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        RedisHelper.close();
+        if (scheduler != null && !scheduler.isShutdown()) {
+            scheduler.shutdown();
+        }
+    }
+
+    private void startPeriodicFetch() {
+        scheduler = Executors.newScheduledThreadPool(1);
+        scheduler.scheduleWithFixedDelay(() -> {
+            // Fetch data and update UI on the main thread
+            runOnUiThread(() -> {
+                try {
+                    // Fetch personal and group todos
+                    Log.d("Fetch", "Fetching...");
+                    personalTodoItems = fetchPersonalTodos();
+                    groupTodoItems = fetchGroupTodos(groupId);
+
+                    // Update the adapter with the latest data
+                    if (viewPager.getCurrentItem() == 0) {
+                        adapter.updateItems(personalTodoItems, "Personal", persoanlTodoDatabase);
+                    } else {
+                        adapter.updateItems(groupTodoItems, "Group", groupTodoDatabase);
+                    }
+                } catch (Exception e) {
+                    Log.e("PeriodicFetch", "Error updating to-dos", e);
+                }
+            });
+        }, 0, 1, TimeUnit.MINUTES); // initial delay: 0, delay b/t executions: 1 minute
+    }
+
+
 
     private List<TodoItem> fetchPersonalTodos() {
         persoanlTodoDatabase = new TodoDatabase(this, "personalTodoTemp");
+
+        // Fetch from redis
+        for (TodoItem redisTodo: RedisHelper.getTodos(user.getId())) {
+            persoanlTodoDatabase.insertTodo(redisTodo);
+            RedisHelper.deleteTodo(user.getId(), redisTodo.getTitle());  // Delete personal to-do after use
+        }
+
         List<TodoItem> todoItems = persoanlTodoDatabase.getAllTodos();
         if (todoItems.isEmpty()) {
             // Create a mock to-do list for testing
@@ -143,47 +192,44 @@ public class MainActivity extends FragmentActivity {
             todos.add(new TodoItem("Submit next week's progress", TodoItem.Priority.LOW,
                     Place.SCHOOL, Time.WORKING, LocalDate.now(), "",false));
 
-            // fetch from redis
-            todos.addAll(RedisHelper.getTodos(user.getId()));
-
-            for (TodoItem item: todos) {
-                persoanlTodoDatabase.insertTodo(item);
-            }
             return todos;
-        } else {
-            for (TodoItem item: RedisHelper.getTodos(user.getId())) {
-                persoanlTodoDatabase.insertTodo(item);
-            }
-            return todoItems;
         }
+
+        return todoItems;
     }
 
     private List<TodoItem> fetchGroupTodos(String groupId) {
         groupTodoDatabase = new TodoDatabase(this, "groupTodo");
+
+        // Fetch from redis
+        List<TodoItem> todos = RedisHelper.getTodos(groupId);
+        for (TodoItem todo: todos) {
+            if (!groupTodoDatabase.containsTodo(todo)) {
+                // Add new to-do if not exist
+                groupTodoDatabase.insertTodo(todo);
+            } else {
+                groupTodoDatabase.updateTodo(todo);
+            }
+        }
+
         List<TodoItem> todoItems = groupTodoDatabase.getAllTodos();
         if (todoItems.isEmpty()) {
             // Create a mock to-do list for testing
-            List<TodoItem> todos = new ArrayList<>();
-            todos.add(new TodoItem("Plan group presentation", TodoItem.Priority.HIGH,
+            List<TodoItem> mockTodos = new ArrayList<>();
+            mockTodos.add(new TodoItem("Plan group presentation", TodoItem.Priority.HIGH,
                     Place.WORK, Time.WORKING, LocalDate.now().plusDays(2),
                     "Will", false));
-            todos.add(new TodoItem("Review project milestones", TodoItem.Priority.MEDIUM,
+            mockTodos.add(new TodoItem("Review project milestones", TodoItem.Priority.MEDIUM,
                     Place.WORK, Time.WORKING, LocalDate.now().plusDays(5),
                     "Chuong", false));
-
-            // Fetch from redis
-            todos.addAll(RedisHelper.getTodos(groupId));
 
             for (TodoItem item: todos) {
                 groupTodoDatabase.insertTodo(item);
             }
-            return todos;
-        } else {
-            for (TodoItem item: RedisHelper.getTodos(groupId)) {
-                groupTodoDatabase.insertTodo(item);
-            }
-            return todoItems;
+            return mockTodos;
         }
+
+        return todoItems;
     }
 
     private User createUser() {
@@ -205,6 +251,7 @@ public class MainActivity extends FragmentActivity {
             timeMap.put("sleep", new TimeRange(23, 0, 6, 59));
 
             User user = new User("Steve Jobs", locationMap, timeMap);
+            user.setId("123");
             UserData.saveUser(this, user);
 
             return user;
@@ -296,8 +343,6 @@ public class MainActivity extends FragmentActivity {
 
         // Create the channel
         NotificationChannel channel = new NotificationChannel(channelId, channelName, importance);
-
-        // Customize channel (optional)
         channel.setDescription("Channel for to-do list notifications");
 
         // Register the channel with the system

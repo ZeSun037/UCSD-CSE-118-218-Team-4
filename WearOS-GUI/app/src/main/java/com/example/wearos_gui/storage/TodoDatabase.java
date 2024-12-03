@@ -54,6 +54,11 @@ public class TodoDatabase {
         return gson.fromJson(todoListJson, listType); // Deserialize as list of TodoItem
     }
 
+    public boolean containsTodo(TodoItem todo) {
+        List<TodoItem> todos = getAllTodos();
+        return todos.contains(todo);
+    }
+
     public void updateTodo(TodoItem updatedTodo) {
         List<TodoItem> todos = getAllTodos();
         for (int i = 0; i < todos.size(); i++) {
