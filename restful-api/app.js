@@ -29,11 +29,6 @@ app.post('/', (req, res) => {
   res.send("Boo!");
 })
 
-app.post('/', (req, res) => {
-  console.log(req.body);
-  res.send("Boo!");
-});
-
 /**
  * Use echoRouter to handle /echo routes.
  * @route /echo

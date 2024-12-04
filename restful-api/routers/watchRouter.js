@@ -5,7 +5,7 @@
  */
 
 const express = require('express');
-const { getUserTasks, deleteUserTasks } = require('../controllers/watchController');
+const { getUserTasks, deleteUserTasks, completeUserTasks } = require('../controllers/watchController');
 
 const watchRouter = express.Router();
 
@@ -17,7 +17,9 @@ const watchRouter = express.Router();
  * @param {string} user - The user identifier.
  * @param {function} deleteUserTasks - Controller function to handle task deletion.
  */
-watchRouter.delete('/:user', deleteUserTasks);
+watchRouter.delete('/', deleteUserTasks);
+
+watchRouter.post('/', completeUserTasks);
 
 /**
  * Route to get tasks for a specific user.
