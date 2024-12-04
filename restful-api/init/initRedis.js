@@ -1,4 +1,6 @@
 var redis = require('redis');
+const {Repository} = require('redis-om');
+const TODO = require('./initTODO');
 const config = require('../config.json');
 
 class Redis {
@@ -7,7 +9,7 @@ class Redis {
         this.port = config['redis-socket']['port'];
         this.connected = false;
         this.client = null;
-
+        this.todoRepository = null;
     }
 
     async getConnection() {
@@ -49,6 +51,8 @@ class Redis {
             try{
                 console.log("connecting new redis client!");
                 await obj.client.connect();
+                this.todoRepository = new Repository(TODO, obj.client);
+                await this.todoRepository.createIndex();
                 obj.connected = true;
                 console.log("connected to new redis client!");
             }
