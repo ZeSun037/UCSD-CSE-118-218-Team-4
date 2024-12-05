@@ -6,33 +6,41 @@ exports.postUsersTodos = async (req, res) => {
 
     const newTODOs = req.body;
 
-    // Add function to call speech-to-text function
-    // to generate TODOs here
-    // Format of a batch with one user:
-    // [{user: usrname, tasks: ["task1", "task2", "task3",...]}]
-
     const testTODOs = [
         {
-            assignee: 'testwatch',
-            todos: ['task1', 'task2']
+            userId: "123",
+            field: "Buy magazine",
+            value: `Title: Buy magazine, Priority: HIGH, Places: STORE, Time: GENERAL, Assignee: , isDone: false`
+        },
+        {
+            userId: "123",
+            field: "Buy battery",
+            value: `Title: Buy battery, Priority: MEDIUM, Places: STORE, Time: GENERAL, Assignee: , isDone: false`
         }
     ]
-    for (const batch of testTODOs) {
-        const exists = await redis.exists(batch.assignee);
+
+    for (const todo of testTODOs) {
+        const exists = await redis.exists(todo.userId);
         if (exists === 1) {
-            console.log(`${batch.assignee} already exists in the database!`);
-            const insert = await redis.sAdd(batch.assignee, batch.todos);
+
+            console.log(`${todo.userId} already exists in the database!`);
+            const insert = await redis.hSet(todo.userId, todo.field, todo.value);
+
             if (insert === 1) {
-                console.log(`Successfully created new TODOs for ${batch.assignee}.`);
+                console.log(`Successfully created new TODOs for ${todo.userId}.`);
             }
+
         } else {
-            console.log(`Creating new TODOs for ${batch.assignee}...`);
-            const insert = await redis.sAdd(batch.assignee, batch.todos);
+
+            console.log(`Creating new TODOs for ${todo.userId}...`);
+            const insert = await redis.hSet(todo.userId, todo.field, todo.value);
+
             if (insert === 1) {
-                console.log(`Successfully created new TODOs for ${batch.assignee}.`);
+                console.log(`Successfully created new TODOs for ${todo.userId}.`);
             }
+
         }
-        console.log(await redis.sMembers(batch.assignee));
+        console.log(await redis.hGetAll(todo.userId));
     }
     res.status(200).send(`Successfully created new TODOs.`);
 }
