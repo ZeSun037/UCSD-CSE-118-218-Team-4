@@ -20,22 +20,15 @@ const LaunchRequestHandler = {
     }
 };
 
-async function makeLocalServerRequest(catchAllValue) {
+async function makeLocalServerRequest(assignee, tasks, type) {
     try {
         console.log("Making a request to server")
         const response = await axios.post(
             'http://83.149.103.151:3000/echo/new',
             {
-                messages: [
-                    {
-                        role: "system",
-                        content: "You are a task organizer that formats requests into structured to-do lists. If a user mentions an assignee, a task, and the todo-list type, you should create a structured response like this:\n\n[Type] ToDo-List\nAssignee [Name]:\n1. [Task 1]\n2. [Task 2]\n\nRespond with only the formatted to-do list."
-                    },
-                    {
-                        role: "user",
-                        content: "test first" // catchAllValue
-                    }
-                ]
+                assignee: assignee,
+                tasks: tasks.join(", "),
+                type: type
             },
             {
                 headers: {
@@ -139,17 +132,16 @@ const HelloWorldIntentHandler = {
         console.log("User Input:", catchAllValue);
 
         // Make the asynchronous request and build the response
-        // const parsedData = await makeAsyncPostRequest(catchAllValue);
+        const parsedData = await makeAsyncPostRequest(catchAllValue);
 
-        const localServerData = await makeLocalServerRequest(catchAllValue);
-        console.log(localServerData);
-
-        // if (parsedData) {
-        // const { assignee, tasks, type } = parsedData;
-        // speakOutput = `The tasks for ${assignee} are: ${tasks.join(', ')} under ${type} ToDo-List have been successfully added.`;
-        // } else {
-        // speakOutput = 'Sorry, there was an error processing your request.';
-        // }
+        if (parsedData) {
+            const { assignee, tasks, type } = parsedData;
+            speakOutput = `The tasks for ${assignee} are: ${tasks.join(', ')} under ${type} ToDo-List have been successfully added.`;
+            const localServerData = await makeLocalServerRequest(assignee, tasks, type);
+            console.log(localServerData);
+        } else {
+            speakOutput = 'Sorry, there was an error processing your request.';
+        }
 
         return handlerInput.responseBuilder
             .speak(speakOutput + " Would you like to add another task, or say 'done' to finish?")
@@ -164,13 +156,20 @@ const AddTaskIntentHandler = {
         return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest' &&
             Alexa.getIntentName(handlerInput.requestEnvelope) === 'AddTaskIntent';
     },
-    handle(handlerInput) {
+    async handle(handlerInput) {
         let speakOutput = 'What task would you like to add next?';
+        const catchAllValue = handlerInput.requestEnvelope.request.intent.slots.catchAllAddTask.value;
 
-        const catchAllValue = handlerInput.requestEnvelope.request.intent.slots.catchAll.value;
+        const parsedData = await makeAsyncPostRequest(catchAllValue);
 
-        const { assignee, tasks, type } = makeSyncPostRequest(catchAllValue);
-        speakOutput = `The tasks for ${assignee} are: ${tasks.join(', ')} under ${type} ToDo-List have been successfully added.`;
+        if (parsedData) {
+            const { assignee, tasks, type } = parsedData;
+            speakOutput = `The tasks for ${assignee} are: ${tasks.join(', ')} under ${type} ToDo-List have been successfully added.`;
+            const localServerData = await makeLocalServerRequest(assignee, tasks, type);
+            console.log(localServerData);
+        } else {
+            speakOutput = 'Sorry, there was an error processing your request.';
+        }
 
         return handlerInput.responseBuilder
             .speak(speakOutput + " Would you like to add another task, or say 'done' to finish?")
