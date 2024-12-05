@@ -3,6 +3,7 @@ const { EntityId } = require("redis-om");
 const TODO = require("../init/initTODO");
 
 exports.getUserTasks = async (req, res) => {
+
     await Redis.getConnection();
     const todoRepo = Redis.todoRepository;
 
@@ -23,12 +24,14 @@ exports.getUserTasks = async (req, res) => {
 }
 
 exports.completeUserTasks = async (req, res) => { 
+    
     await Redis.getConnection();
     const todoRepo = Redis.todoRepository;
 
     const data = req.body;
 
     const todo = await todoRepo.search().where('title').equals(data.title).and('assignee').equals(data.assignee).return.first();
+    
     if (todo !== null) {
         todo.isDone = true;
 
