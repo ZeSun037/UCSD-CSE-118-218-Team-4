@@ -1,60 +1,93 @@
 package com.example.wearos_gui.utility;
 
+import android.os.AsyncTask;
+import android.util.Log;
+
 import com.example.wearos_gui.entity.Place;
 import com.example.wearos_gui.entity.Time;
 import com.example.wearos_gui.entity.TodoItem;
-import com.example.wearos_gui.entity.User;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.exceptions.JedisConnectionException;
 
 public class RedisHelper {
     private static Jedis jedis;
+    private static final String REDIS_HOST = "83.149.103.151";
+    private static final int REDIS_PORT = 6379;
+    private static final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     public static void init() {
-        jedis = new Jedis("83.149.103.151", 6379);
-        System.out.println("Connected to Redis.");
+        executor.submit(() -> {
+            try {
+                if (jedis == null || !jedis.isConnected()) {
+                    jedis = new Jedis(REDIS_HOST, REDIS_PORT);
+                }
+            } catch (JedisConnectionException e) {
+                Log.e("RedisHelper", "Failed to connect to Redis", e);
+            }
+        });
     }
 
     public static void close() {
-        if (jedis != null) {
-            jedis.close();
-        }
+        executor.submit(() -> {
+            if (jedis != null) {
+                jedis.close();
+                jedis = null;
+            }
+        });
     }
 
     public static List<TodoItem> getTodos(String key) {
-        if (jedis == null) {
-            jedis = new Jedis("83.149.103.151", 6379);
-        }
-        List<TodoItem> todoItems = new ArrayList<>();
-        Map<String, String> todos = jedis.hgetAll(key);
+        try {
+            Future<List<TodoItem>> future = executor.submit(() -> {
+                if (jedis == null) {
+                    jedis = new Jedis(REDIS_HOST, REDIS_PORT);
+                }
+                List<TodoItem> todoItems = new ArrayList<>();
+                Map<String, String> todos = jedis.hgetAll(key);
 
-        for (String title : todos.keySet()) {
-            String todoString = todos.get(title);
-            assert todoString != null;
-            TodoItem convertedTodo = convertTodoFromString(todoString);
-            todoItems.add(convertedTodo);
-        }
+                for (String title : todos.keySet()) {
+                    String todoString = todos.get(title);
+                    if (todoString != null) {
+                        TodoItem convertedTodo = convertTodoFromString(todoString);
+                        todoItems.add(convertedTodo);
+                    }
+                }
 
-        return todoItems;
+                return todoItems;
+            });
+
+            return future.get(); // This will block until the result is available
+        } catch (Exception e) {
+            Log.e("RedisHelper", "Error getting todos", e);
+            return new ArrayList<>();
+        }
     }
 
     public static void updateTodos(String key, TodoItem item) {
-        if (jedis == null) {
-            jedis = new Jedis("83.149.103.151", 6379);
-        }
-        jedis.hset(key, item.getTitle(), item.toString());
+        executor.submit(() -> {
+            if (jedis == null) {
+                jedis = new Jedis(REDIS_HOST, REDIS_PORT);
+            }
+            jedis.hset(key, item.getTitle(), item.toString());
+        });
     }
 
     public static void deleteTodo(String userId, String todoTitle) {
-        if (jedis == null) {
-            jedis = new Jedis("83.149.103.151", 6379);
-        }
-         jedis.hdel(userId, todoTitle);
+        executor.submit(() -> {
+            if (jedis == null) {
+                jedis = new Jedis(REDIS_HOST, REDIS_PORT);
+            }
+            jedis.hdel(userId, todoTitle);
+        });
     }
 
     public static TodoItem convertTodoFromString(String todoString) {

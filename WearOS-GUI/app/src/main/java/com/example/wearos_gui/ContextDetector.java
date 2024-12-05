@@ -49,7 +49,7 @@ public class ContextDetector implements SensorEventListener {
             float y = event.values[1];
             float z = event.values[2];
             movementMagnitude = (float) Math.sqrt(x * x + y * y + z * z);
-            Log.d("Movement", movementMagnitude+"units");
+//            Log.d("Movement", movementMagnitude+"units");
         }
     }
 

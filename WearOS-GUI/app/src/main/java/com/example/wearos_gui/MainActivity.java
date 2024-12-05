@@ -83,10 +83,10 @@ public class MainActivity extends FragmentActivity {
 
         // Fetch personal and group to-do items
         RedisHelper.init();
-        personalTodoItems = new ArrayList<>();
-//        personalTodoItems = fetchPersonalTodos();
-        groupTodoItems = new ArrayList<>();
-//        groupTodoItems = fetchGroupTodos(groupId);
+//        personalTodoItems = new ArrayList<>();
+        personalTodoItems = fetchPersonalTodos();
+//        groupTodoItems = new ArrayList<>();
+        groupTodoItems = fetchGroupTodos(groupId);
 
         // Set up adapter for ViewPager
         adapter = new TodoPageAdapter(this, personalTodoItems, persoanlTodoDatabase, user);
@@ -121,7 +121,7 @@ public class MainActivity extends FragmentActivity {
 
         // Fetch Redis to-dos every 1 minute
         RedisHelper.init();
-//        startPeriodicFetch();
+        startPeriodicFetch();
 
         // Get current time and location and update user object
         getCurrentLocation();
@@ -153,7 +153,7 @@ public class MainActivity extends FragmentActivity {
             runOnUiThread(() -> {
                 try {
                     // Fetch personal and group todos
-                    Log.d("Fetch", "Fetching...");
+//                    Log.d("Fetch", "Fetching...");
                     personalTodoItems = fetchPersonalTodos();
                     groupTodoItems = fetchGroupTodos(groupId);
 
@@ -192,6 +192,9 @@ public class MainActivity extends FragmentActivity {
             todos.add(new TodoItem("Submit next week's progress", TodoItem.Priority.LOW,
                     Place.SCHOOL, Time.WORKING, LocalDate.now(), "",false));
 
+            for (TodoItem item: todos) {
+                persoanlTodoDatabase.insertTodo(item);
+            }
             return todos;
         }
 
@@ -245,7 +248,7 @@ public class MainActivity extends FragmentActivity {
             locationMap.put("store", new LocationRange(32.868, 32.872, -117.213, -117.208)); // UTC
 
             Map<String, TimeRange> timeMap = new HashMap<>();
-            timeMap.put("before_working", new TimeRange(7, 0, 8, 59));
+            timeMap.put("before_work", new TimeRange(7, 0, 8, 59));
             timeMap.put("working", new TimeRange(9, 0, 16, 59));
             timeMap.put("rest", new TimeRange(17, 0, 22, 59));
             timeMap.put("sleep", new TimeRange(23, 0, 6, 59));
@@ -261,21 +264,21 @@ public class MainActivity extends FragmentActivity {
     private void getCurrentLocation() {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
-        ProgressBar loadingSpinner = findViewById(R.id.locationLoading);
-        loadingSpinner.setVisibility(View.VISIBLE);
+//        ProgressBar loadingSpinner = findViewById(R.id.locationLoading);
+//        loadingSpinner.setVisibility(View.VISIBLE);
 
         // Check location permission
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
                     LOCATION_PERMISSION_REQUEST_CODE);
-            loadingSpinner.setVisibility(View.GONE); // Hide spinner if permission is denied
+//            loadingSpinner.setVisibility(View.GONE); // Hide spinner if permission is denied
             return;
         }
 
         LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         if (!isLocationEnabled(locationManager)) {
-            loadingSpinner.setVisibility(View.GONE); // Hide spinner if location is disabled
+//            loadingSpinner.setVisibility(View.GONE); // Hide spinner if location is disabled
             showLocationEnableDialog();
             return;
         }
@@ -283,7 +286,7 @@ public class MainActivity extends FragmentActivity {
         // Use getCurrentLocation for faster, one-time location request
         fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
             .addOnCompleteListener(task -> {
-                loadingSpinner.setVisibility(View.GONE); // Hide spinner after getting location
+//                loadingSpinner.setVisibility(View.GONE); // Hide spinner after getting location
                 if (task.isSuccessful() && task.getResult() != null) {
                     Location location = task.getResult();
                     lat = location.getLatitude();

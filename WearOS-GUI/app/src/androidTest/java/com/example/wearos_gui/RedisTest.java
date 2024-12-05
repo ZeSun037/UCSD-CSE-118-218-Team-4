@@ -79,7 +79,7 @@ public class RedisTest {
     }
 
     @Test
-    public void testgetToDos() {
+    public void testGetToDos() {
         // Fetching and printing To-Do items for the user
         Map<String, String> todos = jedis.hgetAll(userId);
 
@@ -95,4 +95,10 @@ public class RedisTest {
             assertEquals(title, convertedTodo.getTitle());
         }
     }
+
+//    @Test
+//    public void testDeleteToDos() {
+//        long count = jedis.del(userId);
+//        System.out.println("Deleted To-Do: " + count);
+//    }
 }
