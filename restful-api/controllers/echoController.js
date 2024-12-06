@@ -9,11 +9,20 @@ exports.postUsersTodos = async (req, res) => {
     const { assignee, task, place, time, priority } = todo;
     console.log("assignee: ",assignee, ", task: ", task, ", place: ", place, ", time: ", time);
 
-    // Remember to replace these with functions
-    const todoItem = {
-        userId: "123", // Replace with this: todoItem.userId = crypto.createHash('sha256').update(assignee).digest('hex');
-        field: `${task}`,
-        value: `Title: ${task}, Priority: ${priority}, Place: ${place}, Time: ${time}, Assignee: ${assignee}, isDone: false`
+    // assume only one alexa device under Will's name
+    let todoItem;
+    if (assignee === "Will") {
+        todoItem = {
+            key: "123", // crypto.createHash('sha256').update(assignee).digest('hex');
+            field: `${task}`,
+            value: `Title: ${task}, Priority: ${priority}, Place: ${place}, Time: ${time}, Assignee: , isDone: false`
+        }
+    } else {
+        todoItem = {
+            key: "team4",
+            field: `${task}`,
+            value: `Title: ${task}, Priority: ${priority}, Place: ${place}, Time: ${time}, Assignee: ${assignee}, isDone: false`
+        }
     }
 
     // const testTODOs = [
@@ -29,29 +38,23 @@ exports.postUsersTodos = async (req, res) => {
     //     }
     // ]
 
-    todoItem.userId = crypto.createHash('sha256').update(assignee).digest('hex');
-
-    const exists = await redis.exists(todoItem.userId);
+    const exists = await redis.exists(todoItem.key);
     if (exists === 1) {
-
-        console.log(`${todoItem.userId} already exists in the database!`);
-        const insert = await redis.hSet(todoItem.userId, todoItem.field, todoItem.value);
+        console.log(`${todoItem.key} already exists in the database!`);
+        const insert = await redis.hSet(todoItem.key, todoItem.field, todoItem.value);
 
         if (insert === 1) {
-            console.log(`Successfully created new TODOs for ${todoItem.userId}.`);
+            console.log(`Successfully created new TODOs for ${todoItem.key}.`);
         }
-
     } else {
-
-        console.log(`Creating new TODOs for ${todoItem.userId}...`);
-        const insert = await redis.hSet(todoItem.userId, todoItem.field, todoItem.value);
+        console.log(`Creating new TODOs for ${todoItem.key}...`);
+        const insert = await redis.hSet(todoItem.key, todoItem.field, todoItem.value);
 
         if (insert === 1) {
-            console.log(`Successfully created new TODOs for ${todoItem.userId}.`);
+            console.log(`Successfully created new TODOs for ${todoItem.key}.`);
         }
-
     }
-    console.log(await redis.hGetAll(todoItem.userId));
+    console.log(await redis.hGetAll(todoItem.key));
     res.status(200).send(`Successfully created new TODOs.`);
 }
 
