@@ -67,7 +67,8 @@ async function makeAsyncPostRequest(catchAllValue) {
                             "structured response like this:\n\nAssignee: `Name`,\nTask: `Todo title`,\nPlace: " +
                             "`HOME`/`SCHOOL`/`WORK`/`STORE`/`GENERAL`,\nTime: `BEFORE_WORK`/`WORKING`/`REST`/`SLEEP`/`GENERAL`\n\n" +
                             "Only use the values defined above for place and time. If you can't find an appropriate" +
-                            "value for the time and place fields, just use GENERAL. Respond with only the formatted " +
+                            "value for the time and place fields, just use GENERAL. If the user does not specify the " +
+                            "assignee or uses first person pronouns, assume that it's `Will`. Respond with only the formatted " +
                             "to-do item. \n\ne.g. \nuser: assign finish homework to Will when working.\n" +
                             "format return: \nAssignee: `Will`, Task: `finish homework`, Place: `HOME` (or `SCHOOL`)" +
                             ", Time: `WORKING`"
