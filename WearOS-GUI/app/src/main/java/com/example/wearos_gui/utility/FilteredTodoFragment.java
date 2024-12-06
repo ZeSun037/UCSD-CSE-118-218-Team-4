@@ -165,17 +165,17 @@ public class FilteredTodoFragment extends Fragment {
 
             // TextView for the to-do title
             TextView todoTextView = new TextView(getContext());
-            if (item.getAssignee().equals("")) {
+            if (item.getAssignee().isEmpty()) {
                 todoTextView.setText(item.getTitle());
             } else {
                 todoTextView.setText(item.getAssignee() + ": " + item.getTitle());
             }
             todoTextView.setTextSize(14);
             todoTextView.setTextColor(Color.BLACK);
-            todoTextView.setMaxLines(Integer.MAX_VALUE); // Allow unlimited lines for wrapping
-            todoTextView.setEllipsize(null); // Disable ellipsis
+            todoTextView.setMaxLines(Integer.MAX_VALUE);
+            todoTextView.setEllipsize(null);
             todoTextView.setLayoutParams(new LinearLayout.LayoutParams(
-                    0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f)); // Weight for title
+                    0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f));
 
             itemContainer.addView(todoTextView);
 
@@ -202,6 +202,11 @@ public class FilteredTodoFragment extends Fragment {
                         RedisHelper.updateTodos(GROUP_ID, item);
                     }
                 });
+
+                // Only shows the checkbox if it's personal
+                if (!item.getAssignee().isEmpty()) {
+                    checkBox.setVisibility(View.INVISIBLE);
+                }
 
                 itemContainer.addView(checkBox);
             }

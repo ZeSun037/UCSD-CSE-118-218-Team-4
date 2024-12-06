@@ -81,7 +81,7 @@ public class RedisTest {
     @Test
     public void testGetToDos() {
         // Fetching and printing To-Do items for the user
-        Map<String, String> todos = jedis.hgetAll(userId);
+        Map<String, String> todos = jedis.hgetAll(groupId);
 
         // Converting the fetched strings back to to-do objects
         for (String title : todos.keySet()) {
@@ -94,6 +94,19 @@ public class RedisTest {
             assertNotNull(convertedTodo);
             assertEquals(title, convertedTodo.getTitle());
         }
+    }
+
+    @Test
+    public void testUpdateToDos() {
+        TodoItem todo = new TodoItem("finish my work", TodoItem.Priority.MEDIUM, Place.WORK, Time.WORKING, LocalDate.now(),
+                "Zack", true);
+        jedis.hset(groupId, todo.getTitle(), todo.toString());
+
+        Map<String, String> todos = jedis.hgetAll(groupId);
+
+        // Assertions
+        assertNotNull(todos);
+        assertTrue(todos.containsKey(todo.getTitle()));
     }
 
 //    @Test

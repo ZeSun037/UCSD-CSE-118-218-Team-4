@@ -84,9 +84,9 @@ public class MainActivity extends FragmentActivity {
         // Fetch personal and group to-do items
         RedisHelper.init();
 //        personalTodoItems = new ArrayList<>();
-        personalTodoItems = fetchPersonalTodos();
+        personalTodoItems = fetchPersonalTodos(true);
 //        groupTodoItems = new ArrayList<>();
-        groupTodoItems = fetchGroupTodos(groupId);
+        groupTodoItems = fetchGroupTodos(groupId, true);
 
         // Set up adapter for ViewPager
         adapter = new TodoPageAdapter(this, personalTodoItems, persoanlTodoDatabase, user);
@@ -154,8 +154,8 @@ public class MainActivity extends FragmentActivity {
                 try {
                     // Fetch personal and group todos
 //                    Log.d("Fetch", "Fetching...");
-                    personalTodoItems = fetchPersonalTodos();
-                    groupTodoItems = fetchGroupTodos(groupId);
+                    personalTodoItems = fetchPersonalTodos(false);
+                    groupTodoItems = fetchGroupTodos(groupId, false);
 
                     // Update the adapter with the latest data
                     if (viewPager.getCurrentItem() == 0) {
@@ -172,8 +172,10 @@ public class MainActivity extends FragmentActivity {
 
 
 
-    private List<TodoItem> fetchPersonalTodos() {
-        persoanlTodoDatabase = new TodoDatabase(this, "personalTodoTemp");
+    private List<TodoItem> fetchPersonalTodos(boolean isFirstTime) {
+        if (isFirstTime) {
+            persoanlTodoDatabase = new TodoDatabase(this, "personalTodoTemp");
+        }
 
         // Fetch from redis
         for (TodoItem redisTodo: RedisHelper.getTodos(user.getId())) {
@@ -182,27 +184,29 @@ public class MainActivity extends FragmentActivity {
         }
 
         List<TodoItem> todoItems = persoanlTodoDatabase.getAllTodos();
-        if (todoItems.isEmpty()) {
-            // Create a mock to-do list for testing
-            List<TodoItem> todos = new ArrayList<>();
-            todos.add(new TodoItem("Buy concert ticket", TodoItem.Priority.MEDIUM,
-                    Place.GENERAL, Time.GENERAL, LocalDate.now(), "", false));
-            todos.add(new TodoItem("Buy groceries", TodoItem.Priority.LOW,
-                    Place.STORE, Time.WORKING, LocalDate.now(), "",false));
-            todos.add(new TodoItem("Submit next week's progress", TodoItem.Priority.LOW,
-                    Place.SCHOOL, Time.WORKING, LocalDate.now(), "",false));
-
-            for (TodoItem item: todos) {
-                persoanlTodoDatabase.insertTodo(item);
-            }
-            return todos;
-        }
+//        if (todoItems.isEmpty()) {
+//            // Create a mock to-do list for testing
+//            List<TodoItem> todos = new ArrayList<>();
+//            todos.add(new TodoItem("Buy concert ticket", TodoItem.Priority.MEDIUM,
+//                    Place.GENERAL, Time.GENERAL, LocalDate.now(), "", false));
+//            todos.add(new TodoItem("Buy groceries", TodoItem.Priority.LOW,
+//                    Place.STORE, Time.WORKING, LocalDate.now(), "",false));
+//            todos.add(new TodoItem("Submit next week's progress", TodoItem.Priority.LOW,
+//                    Place.SCHOOL, Time.WORKING, LocalDate.now(), "",false));
+//
+//            for (TodoItem item: todos) {
+//                persoanlTodoDatabase.insertTodo(item);
+//            }
+//            return todos;
+//        }
 
         return todoItems;
     }
 
-    private List<TodoItem> fetchGroupTodos(String groupId) {
-        groupTodoDatabase = new TodoDatabase(this, "groupTodo");
+    private List<TodoItem> fetchGroupTodos(String groupId, boolean isFirstTime) {
+        if (isFirstTime) {
+            groupTodoDatabase = new TodoDatabase(this, "groupTodo");
+        }
 
         // Fetch from redis
         List<TodoItem> todos = RedisHelper.getTodos(groupId);
@@ -216,21 +220,21 @@ public class MainActivity extends FragmentActivity {
         }
 
         List<TodoItem> todoItems = groupTodoDatabase.getAllTodos();
-        if (todoItems.isEmpty()) {
-            // Create a mock to-do list for testing
-            List<TodoItem> mockTodos = new ArrayList<>();
-            mockTodos.add(new TodoItem("Plan group presentation", TodoItem.Priority.HIGH,
-                    Place.WORK, Time.WORKING, LocalDate.now().plusDays(2),
-                    "Will", false));
-            mockTodos.add(new TodoItem("Review project milestones", TodoItem.Priority.MEDIUM,
-                    Place.WORK, Time.WORKING, LocalDate.now().plusDays(5),
-                    "Chuong", false));
-
-            for (TodoItem item: todos) {
-                groupTodoDatabase.insertTodo(item);
-            }
-            return mockTodos;
-        }
+//        if (todoItems.isEmpty()) {
+//            // Create a mock to-do list for testing
+//            List<TodoItem> mockTodos = new ArrayList<>();
+//            mockTodos.add(new TodoItem("Plan group presentation", TodoItem.Priority.HIGH,
+//                    Place.WORK, Time.WORKING, LocalDate.now().plusDays(2),
+//                    "Will", false));
+//            mockTodos.add(new TodoItem("Review project milestones", TodoItem.Priority.MEDIUM,
+//                    Place.WORK, Time.WORKING, LocalDate.now().plusDays(5),
+//                    "Chuong", false));
+//
+//            for (TodoItem item: todos) {
+//                groupTodoDatabase.insertTodo(item);
+//            }
+//            return mockTodos;
+//        }
 
         return todoItems;
     }
@@ -253,7 +257,7 @@ public class MainActivity extends FragmentActivity {
             timeMap.put("rest", new TimeRange(17, 0, 22, 59));
             timeMap.put("sleep", new TimeRange(23, 0, 6, 59));
 
-            User user = new User("Steve Jobs", locationMap, timeMap);
+            User user = new User("Will", locationMap, timeMap);
             user.setId("123");
             UserData.saveUser(this, user);
 
