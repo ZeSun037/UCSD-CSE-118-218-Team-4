@@ -20,15 +20,17 @@ const LaunchRequestHandler = {
     }
 };
 
-async function makeLocalServerRequest(assignee, tasks, type) {
+async function makeLocalServerRequest(assignee, task, place, time) {
     try {
         console.log("Making a request to server")
         const response = await axios.post(
             'http://83.149.103.151:3000/echo/new',
             {
                 assignee: assignee,
-                tasks: tasks.join(", "),
-                type: type
+                task: task,
+                place: place,
+                time: time,
+                priority: "MEDIUM"
             },
             {
                 headers: {
@@ -60,7 +62,15 @@ async function makeAsyncPostRequest(catchAllValue) {
                 messages: [
                     {
                         role: "system",
-                        content: "You are a task organizer that formats requests into structured to-do lists. If a user mentions an assignee, a task, and the todo-list type, you should create a structured response like this:\n\n[Type] ToDo-List\nAssignee [Name]:\n1. [Task 1]\n2. [Task 2]\n\nRespond with only the formatted to-do list."
+                        content: "You are a task organizer that formats requests into structured to-do lists. " +
+                            "If a user mentions an assignee, a task, a time, and a place, you should create a " +
+                            "structured response like this:\n\nAssignee: `Name`,\nTask: `Todo title`,\nPlace: " +
+                            "`HOME`/`SCHOOL`/`WORK`/`STORE`/`GENERAL`,\nTime: `BEFORE_WORK`/`WORKING`/`REST`/`SLEEP`/`GENERAL`\n\n" +
+                            "Only use the values defined above for place and time. If you can't find an appropriate" +
+                            "value for the time and place fields, just use GENERAL. Respond with only the formatted " +
+                            "to-do item. \n\ne.g. \nuser: assign finish homework to Will when working.\n" +
+                            "format return: \nAssignee: `Will`, Task: `finish homework`, Place: `HOME` (or `SCHOOL`)" +
+                            ", Time: `WORKING`"
                     },
                     {
                         role: "user",
@@ -78,6 +88,7 @@ async function makeAsyncPostRequest(catchAllValue) {
 
         if (response.status === 200) {
             const responseData = response.data.choices[0].message.content;
+            console.log('Raw Data:', responseData);
             const parsedData = parseToDoList(responseData);
             console.log('Parsed Data:', parsedData);
             return parsedData;
@@ -95,31 +106,39 @@ async function makeAsyncPostRequest(catchAllValue) {
 function parseToDoList(response) {
     const parsedData = {
         assignee: '',
-        tasks: [],
-        type: ''
+        task: '',
+        place: 'GENERAL', // Default to GENERAL
+        time: 'GENERAL'   // Default to GENERAL
     };
 
-    const typeMatch = response.match(/(.*?) ToDo-List/);
-    const assigneeMatch = response.match(/Assignee\s*(\w+):/);
-    const taskMatches = response.match(/(\d+)\.\s*(.*)/g);
-
-    if (typeMatch) {
-        parsedData.type = typeMatch[1].trim();
-    }
+    // Match for assignee, capturing text between backticks
+    const assigneeMatch = response.match(/Assignee:\s*`([^`]+)`/);
     if (assigneeMatch) {
-        parsedData.assignee = assigneeMatch[1].trim();
-    }
-    if (taskMatches) {
-        parsedData.tasks = taskMatches.map(task => task.replace(/^\d+\.\s*/, '').trim());
-    } else {
-        const singleTaskMatch = response.match(/\d+\.\s*(.*)/);
-        if (singleTaskMatch) {
-            parsedData.tasks = [singleTaskMatch[1].trim()];
-        }
+        parsedData.assignee = assigneeMatch[1].replace(/`/g, '').trim();
     }
 
+    // Match for task, capturing text between backticks
+    const taskMatch = response.match(/Task:\s*`([^`]+)`/);
+    if (taskMatch) {
+        parsedData.task = taskMatch[1].replace(/`/g, '').trim();
+    }
+
+    // Match for place, restricted to valid predefined options
+    const placeMatch = response.match(/Place:\s*`(HOME|SCHOOL|WORK|STORE|GENERAL)`/);
+    if (placeMatch) {
+        parsedData.place = placeMatch[1].replace(/`/g, '').trim();
+    }
+
+    // Match for time, restricted to valid predefined options
+    const timeMatch = response.match(/Time:\s*`(BEFORE_WORK|WORKING|REST|SLEEP|GENERAL)`/);
+    if (timeMatch) {
+        parsedData.time = timeMatch[1].replace(/`/g, '').trim();
+    }
+
+    // Return the parsed data object
     return parsedData;
 }
+
 
 const HelloWorldIntentHandler = {
     canHandle(handlerInput) {
@@ -135,9 +154,9 @@ const HelloWorldIntentHandler = {
         const parsedData = await makeAsyncPostRequest(catchAllValue);
 
         if (parsedData) {
-            const { assignee, tasks, type } = parsedData;
-            speakOutput = `The tasks for ${assignee} are: ${tasks.join(', ')} under ${type} ToDo-List have been successfully added.`;
-            const localServerData = await makeLocalServerRequest(assignee, tasks, type);
+            const { assignee, task, place, time } = parsedData;
+            speakOutput = `The task for ${assignee}: ${task} has been successfully added.`;
+            const localServerData = await makeLocalServerRequest(assignee, task, place, time);
             console.log(localServerData);
         } else {
             speakOutput = 'Sorry, there was an error processing your request.';
@@ -163,10 +182,9 @@ const AddTaskIntentHandler = {
         const parsedData = await makeAsyncPostRequest(catchAllValue);
 
         if (parsedData) {
-            const { assignee, tasks, type } = parsedData;
-            speakOutput = `The tasks for ${assignee} are: ${tasks.join(', ')} under ${type} ToDo-List have been successfully added.`;
-            const localServerData = await makeLocalServerRequest(assignee, tasks, type);
-            console.log(localServerData);
+            const { assignee, task, place, time } = parsedData;
+            speakOutput = `The task for ${assignee}: ${task} has been successfully added.`;
+            const localServerData = await makeLocalServerRequest(assignee, task, place, time);
         } else {
             speakOutput = 'Sorry, there was an error processing your request.';
         }
