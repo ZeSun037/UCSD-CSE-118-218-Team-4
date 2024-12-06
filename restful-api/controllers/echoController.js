@@ -9,8 +9,9 @@ exports.postUsersTodos = async (req, res) => {
     const { assignee, task, place, time, priority } = todo;
     console.log("assignee: ",assignee, ", task: ", task, ", place: ", place, ", time: ", time);
 
+    // Remember to replace these with functions
     const todoItem = {
-        userId: "123",
+        userId: "123", // Replace with this: todoItem.userId = crypto.createHash('sha256').update(assignee).digest('hex');
         field: `${task}`,
         value: `Title: ${task}, Priority: ${priority}, Place: ${place}, Time: ${time}, Assignee: ${assignee}, isDone: false`
     }
@@ -54,6 +55,7 @@ exports.postUsersTodos = async (req, res) => {
     res.status(200).send(`Successfully created new TODOs.`);
 }
 
+// Function no longer needed
 exports.getCompletedTodos = async (req, res) => {
     const redis = await Redis.getConnection();
 
