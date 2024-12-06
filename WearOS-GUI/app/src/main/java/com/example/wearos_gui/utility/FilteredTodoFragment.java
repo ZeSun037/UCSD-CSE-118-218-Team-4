@@ -1,8 +1,8 @@
-package com.example.wearos_gui;
+package com.example.wearos_gui.utility;
 
 import android.graphics.Color;
-import android.graphics.Typeface;
 import android.os.Bundle;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -16,16 +16,29 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.example.wearos_gui.R;
+import com.example.wearos_gui.entity.TodoItem;
+import com.example.wearos_gui.entity.User;
+import com.example.wearos_gui.storage.TodoDatabase;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class FilteredTodoFragment extends Fragment {
     private FilterStrategy filterStrategy;
     private List<TodoItem> allTodoItems;
+    private TodoDatabase todoDatabase;
+    private User user;
+    private double lat;
+    private double lng;
+    private long time;
 
-    public FilteredTodoFragment(FilterStrategy filterStrategy, List<TodoItem> allTodoItems) {
+    public FilteredTodoFragment(FilterStrategy filterStrategy, List<TodoItem> allTodoItems, TodoDatabase database,
+                                User user) {
         this.filterStrategy = filterStrategy;
         this.allTodoItems = allTodoItems;
+        this.todoDatabase = database;
+        this.user = user;
     }
 
     @Nullable
@@ -41,52 +54,67 @@ public class FilteredTodoFragment extends Fragment {
         renderTodoList(view);
     }
 
+    public void updateLocationAndTime(double lat, double lng, long curTime) {
+        this.lat = lat;
+        this.lng = lng;
+        this.time = curTime;
+
+        if (getView() != null) {
+            renderTodoList(getView());
+        }
+        Log.d("DEBUG", "Updating location and time");
+    }
+
     private void renderTodoList(View view) {
         LinearLayout todoListContainer = view.findViewById(R.id.todoListContainer);
         todoListContainer.removeAllViews();
 
         // Create the header
-        TextView headerView = new TextView(getContext());
-        String headerText = "";
-        switch (filterStrategy.getClass().getSimpleName()) {
-            case "TodayFilter":
-                headerText = "Today's";
-                break;
-            case "TomorrowFilter":
-                headerText = "Tomorrow's";
-                break;
-            case "ThisWeekFilter":
-                headerText = "This Week's";
-                break;
-            default:
-                headerText = "My To-Do List";
-        }
-        headerView.setText(headerText);
-        headerView.setTextColor(Color.BLACK);
-        headerView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
-        headerView.setTypeface(null, Typeface.BOLD);
-
-        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-        );
-        layoutParams.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
-        headerView.setLayoutParams(layoutParams);
-        todoListContainer.addView(headerView);
+//        TextView headerView = new TextView(getContext());
+//        String headerText = "";
+//        switch (filterStrategy.getClass().getSimpleName()) {
+//            case "TodayFilter":
+//                headerText = "Today's";
+//                break;
+//            case "TomorrowFilter":
+//                headerText = "Tomorrow's";
+//                break;
+//            case "ThisWeekFilter":
+//                headerText = "This Week's";
+//                break;
+//            case "GroupFilter":
+//                headerText = "Group To-Dos";
+//                break;
+//            default:
+//                headerText = "My To-Do List";
+//        }
+//        headerView.setText(headerText);
+//        headerView.setTextColor(Color.BLACK);
+//        headerView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
+//        headerView.setTypeface(null, Typeface.BOLD);
+//
+//        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
+//                LinearLayout.LayoutParams.WRAP_CONTENT,
+//                LinearLayout.LayoutParams.WRAP_CONTENT
+//        );
+//        layoutParams.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
+//        headerView.setLayoutParams(layoutParams);
+//        todoListContainer.addView(headerView);
 
         // Filter the to-do items using the selected strategy
-        List<TodoItem> filteredItems = filterStrategy.filter(allTodoItems);
+//        List<TodoItem> filteredItems = filterStrategy.filter(allTodoItems);
 
         // Separate items into "Done" and "Not Done" categories
         List<TodoItem> doneItems = new ArrayList<>();
         List<TodoItem> notDoneItems = new ArrayList<>();
-        for (TodoItem item : filteredItems) {
+        for (TodoItem item : allTodoItems) {
             if (item.getDone()) {
                 doneItems.add(item);
             } else {
                 notDoneItems.add(item);
             }
         }
+        TodoSorter.sortNotDoneItems(notDoneItems, this.user, lat, lng, time);
 
         // Create and add "Not Done" header and items
         addSectionHeader(todoListContainer, "Not Done", notDoneItems.size());
@@ -138,7 +166,11 @@ public class FilteredTodoFragment extends Fragment {
 
             // TextView for the to-do title
             TextView todoTextView = new TextView(getContext());
-            todoTextView.setText(item.getTitle());
+            if (item.getAssignee().equals("")) {
+                todoTextView.setText(item.getTitle());
+            } else {
+                todoTextView.setText(item.getAssignee() + ": " + item.getTitle());
+            }
             todoTextView.setTextSize(14);
             todoTextView.setTextColor(Color.BLACK);
             todoTextView.setMaxLines(Integer.MAX_VALUE); // Allow unlimited lines for wrapping
@@ -162,6 +194,13 @@ public class FilteredTodoFragment extends Fragment {
                     // Update item status when checkbox is toggled
                     item.setDone(isChecked);
                     renderTodoList(getView()); // Refresh the list dynamically
+
+                    // Update the database
+                    todoDatabase.updateTodo(item);
+
+                    if (!item.getAssignee().isEmpty()) {
+                        // TODO: update redis if it's a group todo
+                    }
                 });
 
                 itemContainer.addView(checkBox);

@@ -1,4 +1,5 @@
 restful-api/node_modules/
+amazon/node_modules/
 restful-api/config.json
 .apikey
 */config.json
@@ -7,6 +8,7 @@ restful-api/config.json
 amazon
 amazon/anazon_env
 amazon/node_modules/
+
 
 */config.json
 
