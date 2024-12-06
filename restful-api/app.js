@@ -12,6 +12,11 @@ app.get('/', (req, res) => {
   res.send('Hello World');  
 });
 
+app.post('/', (req, res) => {
+  console.log(req.body);
+  res.status(200).send('POST request to the homepage');
+})
+
 app.use('/echo', echoRouter);
 
 app.use('/watch', watchRouter);
