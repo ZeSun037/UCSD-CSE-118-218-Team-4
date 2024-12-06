@@ -40,5 +40,15 @@
             android:visibility="gone" />
     </FrameLayout>
 
+    <ImageButton
+        android:id="@+id/debugButton"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_gravity="center_horizontal|bottom"
+        android:layout_marginBottom="4dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Debug"
+        android:src="@drawable/baseline_settings_24" />
+
 </androidx.wear.widget.BoxInsetLayout>
 

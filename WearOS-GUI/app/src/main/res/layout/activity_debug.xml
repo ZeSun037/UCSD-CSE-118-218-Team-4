@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/dropdownMenus"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:layout_gravity="center"
+    android:padding="10dp"
+    android:layout_marginTop="14dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Change Location"
+        android:paddingHorizontal="8dp"
+        android:textSize="16dp"
+        android:textColor="@android:color/black" />
+
+    <Spinner
+        android:id="@+id/locationSpinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:spinnerMode="dropdown" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Select Time"
+        android:paddingHorizontal="8dp"
+        android:paddingTop="8dp"
+        android:textSize="16dp"
+        android:textColor="@android:color/black" />
+
+    <Spinner
+        android:id="@+id/timeSpinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:spinnerMode="dropdown"/>
+
+    <ImageButton
+        android:id="@+id/backButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@android:drawable/ic_menu_save"
+        android:maxWidth="20dp"
+        android:contentDescription="save"
+        android:layout_gravity="center_horizontal"
+        android:padding="2dp"
+        android:background="?android:attr/selectableItemBackground" />
+
+</LinearLayout>

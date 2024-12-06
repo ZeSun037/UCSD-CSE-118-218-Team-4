@@ -15,7 +15,12 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.FrameLayout;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.Spinner;
 import android.widget.Toast;
 import android.Manifest;
 
@@ -43,8 +48,8 @@ import com.google.android.gms.location.Priority;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -74,6 +79,18 @@ public class MainActivity extends FragmentActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        ImageButton debugButton = findViewById(R.id.debugButton);
+
+        debugButton.setOnClickListener(v -> {
+            ArrayList<String> locationsList = new ArrayList<>(user.getLocationMap().keySet());
+            ArrayList<String> timesList = new ArrayList<>(user.getTimeMap().keySet());
+
+            Intent intent = new Intent(MainActivity.this, DebugActivity.class);
+            intent.putStringArrayListExtra("locations", locationsList);
+            intent.putStringArrayListExtra("times", timesList);
+            startActivityForResult(intent, 1);
+        });
+
         // Initialize user and UI elements
         user = createUser();
         UserManager.getInstance().setUser(user);
@@ -83,9 +100,7 @@ public class MainActivity extends FragmentActivity {
 
         // Fetch personal and group to-do items
         RedisHelper.init();
-//        personalTodoItems = new ArrayList<>();
         personalTodoItems = fetchPersonalTodos(true);
-//        groupTodoItems = new ArrayList<>();
         groupTodoItems = fetchGroupTodos(groupId, true);
 
         // Set up adapter for ViewPager
@@ -113,18 +128,20 @@ public class MainActivity extends FragmentActivity {
                 }
             }
         });
+
+        getCurrentLocation();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
 
-        // Fetch Redis to-dos every 1 minute
         RedisHelper.init();
         startPeriodicFetch();
 
         // Get current time and location and update user object
-        getCurrentLocation();
+        Log.d("Get location", "from onResume");
+//        getCurrentLocation(); // this will override the location from test module
 
         // Monitor cognitive load
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.BODY_SENSORS) != PackageManager.PERMISSION_GRANTED) {
@@ -138,6 +155,31 @@ public class MainActivity extends FragmentActivity {
     }
 
     @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == 1 && resultCode == RESULT_OK && data != null) {
+            // Get the selected location and time
+            String selectedLocation = data.getStringExtra("selectedLocation");
+            String selectedTime = data.getStringExtra("selectedTime");
+
+            Log.d("MainActivity", "Selected Location: " + selectedLocation);
+            Log.d("MainActivity", "Selected Time: " + selectedTime);
+
+            LocationRange selectedLocationRange = user.getLocationMap().get(selectedLocation.toLowerCase());
+            this.lat = selectedLocationRange.getMinLatitude();
+            this.lng = selectedLocationRange.getMinLongitude();
+
+            TimeRange selectedTimeRange = user.getTimeMap().get(selectedTime.toLowerCase());
+            // Convert the selected time range to milliseconds
+            long startTimeMillis = convertTimeToMillis(selectedTimeRange.getStartHour(), selectedTimeRange.getStartMinute());
+            Log.d("Update fragment", "from updateTime");
+
+            updateFragment(startTimeMillis);
+        }
+    }
+
+    @Override
     protected void onPause() {
         super.onPause();
         RedisHelper.close();
@@ -146,6 +188,7 @@ public class MainActivity extends FragmentActivity {
         }
     }
 
+    // Fetch Redis to-dos every 1 minute
     private void startPeriodicFetch() {
         scheduler = Executors.newScheduledThreadPool(1);
         scheduler.scheduleWithFixedDelay(() -> {
@@ -249,6 +292,7 @@ public class MainActivity extends FragmentActivity {
             Map<String, LocationRange> locationMap = new HashMap<>();
             locationMap.put("home", new LocationRange(32.870, 32.871, -117.217, -117.216));  // CVV
             locationMap.put("school", new LocationRange(32.871, 32.891, -117.242, -117.228)); // UCSD
+            locationMap.put("work", new LocationRange(37.328, 37.338, -122.014, -122.006)); // UCSD
             locationMap.put("store", new LocationRange(32.868, 32.872, -117.213, -117.208)); // UTC
 
             Map<String, TimeRange> timeMap = new HashMap<>();
@@ -263,6 +307,15 @@ public class MainActivity extends FragmentActivity {
 
             return user;
         }
+    }
+
+    private long convertTimeToMillis(int hour, int minute) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.HOUR_OF_DAY, hour);
+        calendar.set(Calendar.MINUTE, minute);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        return calendar.getTimeInMillis();
     }
 
     private void getCurrentLocation() {
@@ -293,22 +346,26 @@ public class MainActivity extends FragmentActivity {
 //                loadingSpinner.setVisibility(View.GONE); // Hide spinner after getting location
                 if (task.isSuccessful() && task.getResult() != null) {
                     Location location = task.getResult();
-                    lat = location.getLatitude();
-                    lng = location.getLongitude();
+                    this.lat = location.getLatitude();
+                    this.lng = location.getLongitude();
 
-                    // Update the fragment with new location
-                    int currentPosition = viewPager.getCurrentItem();
-                    Fragment fragment = getSupportFragmentManager().findFragmentByTag("f" + currentPosition);
-                    if (fragment instanceof FilteredTodoFragment) {
-                        ((FilteredTodoFragment) fragment).updateLocationAndTime(lat, lng, System.currentTimeMillis());
-                    }
-
-                    Log.d("Location", "Latitude: " + lat + ", Longitude: " + lng);
+                    updateFragment(System.currentTimeMillis());
                 } else {
                     Toast.makeText(this, "Unable to fetch location. Please try again.",
                             Toast.LENGTH_SHORT).show();
                 }
             });
+    }
+
+    private void updateFragment(long time) {
+        // Update the fragment with new location
+        int currentPosition = viewPager.getCurrentItem();
+        Fragment fragment = getSupportFragmentManager().findFragmentByTag("f" + currentPosition);
+        if (fragment instanceof FilteredTodoFragment) {
+            ((FilteredTodoFragment) fragment).updateLocationAndTime(this.lat, this.lng, time);
+        }
+
+        Log.d("Location", "Latitude: " + this.lat + ", Longitude: " + this.lng);
     }
 
     private void showLocationEnableDialog() {

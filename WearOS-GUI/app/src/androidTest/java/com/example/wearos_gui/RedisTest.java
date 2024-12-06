@@ -44,7 +44,7 @@ public class RedisTest {
     @Test
     public void testAddMultipleToDos() {
         // Creating To-Do items for the same user
-        TodoItem todo1 = new TodoItem("Buy groceries", TodoItem.Priority.HIGH, Place.STORE, Time.GENERAL, LocalDate.now(),
+        TodoItem todo1 = new TodoItem("Buy groceries", TodoItem.Priority.MEDIUM, Place.STORE, Time.REST, LocalDate.now(),
         "", false);
         TodoItem todo2 = new TodoItem("Prepare slides for meeting", TodoItem.Priority.MEDIUM, Place.SCHOOL, Time.WORKING, LocalDate.now(),
                 "", false);
@@ -109,9 +109,9 @@ public class RedisTest {
         assertTrue(todos.containsKey(todo.getTitle()));
     }
 
-//    @Test
-//    public void testDeleteToDos() {
-//        long count = jedis.del(userId);
-//        System.out.println("Deleted To-Do: " + count);
-//    }
+    @Test
+    public void testDeleteToDos() {
+        long count = jedis.del(userId);
+        System.out.println("Deleted To-Do: " + count);
+    }
 }

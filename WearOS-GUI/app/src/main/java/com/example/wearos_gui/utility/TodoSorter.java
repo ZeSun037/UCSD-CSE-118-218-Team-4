@@ -19,7 +19,7 @@ public class TodoSorter {
     private final static double PLACE_WEIGHT = 0.2;
     private final static double TIME_WEIGHT = 0.3;
     public static void sortNotDoneItems(List<TodoItem> notDoneItems, User user, double lat, double lng, long time) {
-        // put higher score todo item at the front
+        // put higher score to-do item at the front
         notDoneItems.sort(Comparator.comparingDouble(item -> -getItemScore(item, user, lat, lng, time)));
     }
 

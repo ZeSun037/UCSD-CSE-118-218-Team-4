@@ -86,14 +86,13 @@ public class TodoNotificationService extends Service {
                 // Continue checking every 1 minutes
                 handler.postDelayed(this, isTestMode ? delay : 5*delay);
             }
-        }, delay / 2);
+        }, delay);
 
         return START_STICKY;
     }
 
     private TodoItem getTopTodoItem() {
         List<TodoItem> todoItems = personalTodoDatabase.getAllTodos();
-        Log.d("DEBUG1", todoItems.toString());
         todoItems.addAll(groupTodoDatabase.getAllTodos());
         List<TodoItem> notDoneItems = todoItems.stream().filter(item -> !item.getDone()).collect(Collectors.toList());
 
