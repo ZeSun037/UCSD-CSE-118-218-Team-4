@@ -321,7 +321,7 @@ public class MainActivity extends FragmentActivity {
             timeMap.put("sleep", new TimeRange(23, 0, 6, 59));
 
             User user = new User("Alex", locationMap, timeMap);
-            user.setId("002");
+            user.setId("003");
             UserData.saveUser(this, user);
 
             return user;
