@@ -49,10 +49,9 @@ public class TodoPageAdapter extends FragmentStateAdapter {
     public Fragment createFragment(int position) {
         switch (position) {
             case 0: return new FilteredTodoFragment(
-                    personalTodoItems, this.personalTodoDatabase, this.user);
-            case 1: // Group to-dos
-                    return new FilteredTodoFragment(
-                            groupTodoItems, this.groupTodoDatabase, this.user);
+                    personalTodoItems, this.personalTodoDatabase, "Personal", this.user);
+            case 1: return new FilteredTodoFragment(
+                    groupTodoItems, this.groupTodoDatabase, "Group", this.user);
             default:
                 throw new IllegalStateException("Invalid position for fragment creation");
         }

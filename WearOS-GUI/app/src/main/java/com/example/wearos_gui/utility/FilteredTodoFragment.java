@@ -22,6 +22,7 @@ import com.example.wearos_gui.entity.User;
 import com.example.wearos_gui.storage.TodoDatabase;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class FilteredTodoFragment extends Fragment {
@@ -32,12 +33,14 @@ public class FilteredTodoFragment extends Fragment {
     private double lat;
     private double lng;
     private long time;
+    private String type;
 
-    public FilteredTodoFragment(List<TodoItem> allTodoItems, TodoDatabase database,
+    public FilteredTodoFragment(List<TodoItem> allTodoItems, TodoDatabase database, String type,
                                 User user) {
         this.allTodoItems = allTodoItems;
         this.todoDatabase = database;
         this.user = user;
+        this.type = type;
     }
 
     @Nullable
@@ -121,7 +124,20 @@ public class FilteredTodoFragment extends Fragment {
                 notDoneItems.add(item);
             }
         }
-        TodoSorter.sortNotDoneItems(notDoneItems, this.user, lat, lng, time);
+        if (this.type.equals("Personal")) {
+            TodoSorter.sortNotDoneItems(notDoneItems, this.user, lat, lng, time);
+        } else {
+            // Put user's to-do items at the top in group to-do list
+            notDoneItems.sort((a,b) -> {
+                if (a.getAssignee().equals(user.getName()) && !b.getAssignee().equals(user.getName())) {
+                    return -1;  // a before b if a is current user but b is not
+                } else if (a.getAssignee().equals(user.getName()) && b.getAssignee().equals(user.getName())) {
+                    return Double.compare(TodoSorter.getItemScore(b, user, lat, lng, time), TodoSorter.getItemScore(a, user, lat, lng, time));
+                } else {
+                    return 1;
+                }
+            });
+        }
 
         // Create and add "Not Done" header and items
         addSectionHeader(todoListContainer, "Not Done", notDoneItems.size());
@@ -212,7 +228,7 @@ public class FilteredTodoFragment extends Fragment {
                 });
 
                 // Only shows the checkbox if it's personal
-                if (!item.getAssignee().isEmpty()) {
+                if (!item.getAssignee().equals(user.getName())) {
                     checkBox.setVisibility(View.INVISIBLE);
                 }
 
