@@ -16,47 +16,43 @@ import com.example.wearos_gui.utility.FilteredTodoFragment;
 import java.util.List;
 
 public class TodoPageAdapter extends FragmentStateAdapter {
-    private List<TodoItem> todoItems; // Current list of to-do items
-    private String currentFilter;    // Keeps track of the current filter ("Personal" or "Group")
-    private TodoDatabase todoDatabase;
+    private List<TodoItem> personalTodoItems; // Current list of to-do items
+    private List<TodoItem> groupTodoItems;
+    private TodoDatabase personalTodoDatabase;
+    private TodoDatabase groupTodoDatabase;
     private User user;
 
-    public TodoPageAdapter(FragmentActivity fa, List<TodoItem> todoItems, TodoDatabase todoDatabase,
-                           User user) {
+    public TodoPageAdapter(FragmentActivity fa, List<TodoItem> personalItems, TodoDatabase personalDatabase,
+                           List<TodoItem> groupItems, TodoDatabase groupDatabase, User user) {
         super(fa);
-        this.todoItems = todoItems;
-        this.currentFilter = "Personal"; // Default filter
-        this.todoDatabase = todoDatabase;
+        this.personalTodoItems = personalItems;
+        this.personalTodoDatabase = personalDatabase;
+        this.groupTodoItems = groupItems;
+        this.groupTodoDatabase = groupDatabase;
         this.user = user;
     }
 
-    public void updateItems(List<TodoItem> newItems, String filter, TodoDatabase todoDatabase) {
-        this.todoItems = newItems;
-        this.currentFilter = filter;
-        this.todoDatabase = todoDatabase;
-        notifyDataSetChanged(); // Refresh the fragments
+    public void updateItems(List<TodoItem> newItems, int position, TodoDatabase todoDatabase) {
+        if (position == 0) {
+            this.personalTodoItems = newItems;
+            this.personalTodoDatabase = todoDatabase;
+        } else {
+            this.groupTodoItems = newItems;
+            this.groupTodoDatabase = todoDatabase;
+        }
+        notifyItemChanged(position);
     }
+
 
     @NonNull
     @Override
     public Fragment createFragment(int position) {
         switch (position) {
-            case 0: // Personal to-dos
-                if ("Personal".equals(currentFilter)) {
-                    return new FilteredTodoFragment(FilterFactory.getFilter("Personal"),
-                            todoItems, this.todoDatabase, this.user);
-                } else { // If user toggles while on a "Personal" tab
-                    return new FilteredTodoFragment(FilterFactory.getFilter("Group"),
-                            todoItems, this.todoDatabase, this.user);
-                }
+            case 0: return new FilteredTodoFragment(
+                    personalTodoItems, this.personalTodoDatabase, this.user);
             case 1: // Group to-dos
-                if ("Group".equals(currentFilter)) {
-                    return new FilteredTodoFragment(FilterFactory.getFilter("Group"),
-                            todoItems, this.todoDatabase, this.user);
-                } else { // If user toggles while on a "Group" tab
-                    return new FilteredTodoFragment(FilterFactory.getFilter("Personal"),
-                            todoItems, this.todoDatabase, this.user);
-                }
+                    return new FilteredTodoFragment(
+                            groupTodoItems, this.groupTodoDatabase, this.user);
             default:
                 throw new IllegalStateException("Invalid position for fragment creation");
         }

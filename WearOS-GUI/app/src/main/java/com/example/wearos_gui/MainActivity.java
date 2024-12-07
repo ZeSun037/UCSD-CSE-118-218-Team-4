@@ -72,7 +72,7 @@ public class MainActivity extends FragmentActivity {
     private User user;
     private FusedLocationProviderClient fusedLocationClient;
     private ScheduledExecutorService scheduler;
-    private double lat = 0.0, lng = 0.0;
+    private double lat = 32.872, lng = -117.23;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,7 +104,8 @@ public class MainActivity extends FragmentActivity {
         groupTodoItems = fetchGroupTodos(groupId, true);
 
         // Set up adapter for ViewPager
-        adapter = new TodoPageAdapter(this, personalTodoItems, persoanlTodoDatabase, user);
+        adapter = new TodoPageAdapter(this, personalTodoItems, persoanlTodoDatabase,
+                groupTodoItems, groupTodoDatabase, user);
         viewPager.setAdapter(adapter);
 
         // Attach TabLayout to ViewPager
@@ -121,11 +122,6 @@ public class MainActivity extends FragmentActivity {
             @Override
             public void onPageSelected(int position) {
                 super.onPageSelected(position);
-                if (position == 0) {
-                    adapter.updateItems(personalTodoItems, "Personal", persoanlTodoDatabase);
-                } else {
-                    adapter.updateItems(groupTodoItems, "Group", groupTodoDatabase);
-                }
             }
         });
 
@@ -196,21 +192,44 @@ public class MainActivity extends FragmentActivity {
             runOnUiThread(() -> {
                 try {
                     // Fetch personal and group todos
-//                    Log.d("Fetch", "Fetching...");
-                    personalTodoItems = fetchPersonalTodos(false);
-                    groupTodoItems = fetchGroupTodos(groupId, false);
+                    Log.d("Fetch", "Fetching...");
+
+                    boolean hasNewPersonalTodos = false;
+                    List<TodoItem> personalTemp = fetchPersonalTodos(false);
+                    if (!personalTemp.toString().equals(personalTodoItems.toString())) {
+                        Log.d("new personal todos", personalTemp.toString());
+                        personalTodoItems = personalTemp;
+                        hasNewPersonalTodos = true;
+                    }
+                    boolean hasNewGroupTodos = false;
+                    List<TodoItem> groupTemp = fetchGroupTodos(groupId, false);
+                    if (!groupTemp.toString().equals(groupTodoItems.toString())) {
+                        Log.d("new group todos", groupTemp.toString());
+                        groupTodoItems = groupTemp;
+                        hasNewGroupTodos = true;
+                    }
+                    if (hasNewPersonalTodos || hasNewGroupTodos) {
+                        Toast.makeText(this, "You have new todos.",
+                                Toast.LENGTH_SHORT).show();
+                    }
 
                     // Update the adapter with the latest data
-                    if (viewPager.getCurrentItem() == 0) {
-                        adapter.updateItems(personalTodoItems, "Personal", persoanlTodoDatabase);
-                    } else {
-                        adapter.updateItems(groupTodoItems, "Group", groupTodoDatabase);
+                    Fragment fragment = getSupportFragmentManager()
+                            .findFragmentByTag("f" + viewPager.getCurrentItem());
+                    if (fragment instanceof FilteredTodoFragment) {
+                        if (viewPager.getCurrentItem() == 0 && hasNewPersonalTodos) {
+                            adapter.updateItems(personalTodoItems, 0, persoanlTodoDatabase);
+                            ((FilteredTodoFragment) fragment).updateTodoItems(personalTodoItems);
+                        } else if (viewPager.getCurrentItem() == 1 && hasNewGroupTodos) {
+                            adapter.updateItems(groupTodoItems, 1, groupTodoDatabase);
+                            ((FilteredTodoFragment) fragment).updateTodoItems(groupTodoItems);
+                        }
                     }
                 } catch (Exception e) {
                     Log.e("PeriodicFetch", "Error updating to-dos", e);
                 }
             });
-        }, 0, 1, TimeUnit.MINUTES); // initial delay: 0, delay b/t executions: 1 minute
+        }, 1, 1, TimeUnit.MINUTES); // initial delay: 0, delay b/t executions: 1 minute
     }
 
 
@@ -351,8 +370,7 @@ public class MainActivity extends FragmentActivity {
 
                     updateFragment(System.currentTimeMillis());
                 } else {
-                    Toast.makeText(this, "Unable to fetch location. Please try again.",
-                            Toast.LENGTH_SHORT).show();
+                    Log.d("Location", "failed to retrieve location");
                 }
             });
     }

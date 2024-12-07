@@ -81,7 +81,7 @@ public class RedisTest {
     @Test
     public void testGetToDos() {
         // Fetching and printing To-Do items for the user
-        Map<String, String> todos = jedis.hgetAll(groupId);
+        Map<String, String> todos = jedis.hgetAll(userId);
 
         // Converting the fetched strings back to to-do objects
         for (String title : todos.keySet()) {

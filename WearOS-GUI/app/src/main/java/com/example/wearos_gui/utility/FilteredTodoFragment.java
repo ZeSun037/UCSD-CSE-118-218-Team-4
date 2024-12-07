@@ -33,7 +33,7 @@ public class FilteredTodoFragment extends Fragment {
     private double lng;
     private long time;
 
-    public FilteredTodoFragment(FilterStrategy filterStrategy, List<TodoItem> allTodoItems, TodoDatabase database,
+    public FilteredTodoFragment(List<TodoItem> allTodoItems, TodoDatabase database,
                                 User user) {
         this.allTodoItems = allTodoItems;
         this.todoDatabase = database;
@@ -62,6 +62,14 @@ public class FilteredTodoFragment extends Fragment {
             renderTodoList(getView());
         }
         Log.d("DEBUG", "Updating location and time");
+    }
+
+    public void updateTodoItems(List<TodoItem> newTodoItems) {
+        this.allTodoItems = newTodoItems;
+
+        if (getView() != null) {
+            renderTodoList(getView());
+        }
     }
 
     private void renderTodoList(View view) {
