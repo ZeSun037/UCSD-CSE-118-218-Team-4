@@ -224,7 +224,7 @@ public class MainActivity extends FragmentActivity {
                     Log.e("PeriodicFetch", "Error updating to-dos", e);
                 }
             });
-        }, 1, 1, TimeUnit.MINUTES); // initial delay: 0, delay b/t executions: 1 minute
+        }, 1, 1, TimeUnit.MINUTES); // initial delay: 1, delay b/t executions: 1 minute
     }
 
 
@@ -324,8 +324,8 @@ public class MainActivity extends FragmentActivity {
             timeMap.put("rest", new TimeRange(17, 0, 22, 59));
             timeMap.put("sleep", new TimeRange(23, 0, 6, 59));
 
-            User user = new User("Alex", locationMap, timeMap);
-            user.setId("003");
+            User user = new User("Will", locationMap, timeMap);
+            user.setId("123");
             UserData.saveUser(this, user);
 
             return user;

@@ -228,7 +228,7 @@ public class FilteredTodoFragment extends Fragment {
                 });
 
                 // Only shows the checkbox if it's personal
-                if (!item.getAssignee().equals(user.getName())) {
+                if (!(item.getAssignee().equals(user.getName()) || item.getAssignee().isEmpty())) {
                     checkBox.setVisibility(View.INVISIBLE);
                 }
 
