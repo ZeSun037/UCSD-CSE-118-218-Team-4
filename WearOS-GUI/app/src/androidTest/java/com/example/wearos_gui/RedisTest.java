@@ -111,7 +111,7 @@ public class RedisTest {
 
     @Test
     public void testDeleteToDos() {
-        long count = jedis.del(userId);
+        long count = jedis.del(groupId);
         System.out.println("Deleted To-Do: " + count);
     }
 }

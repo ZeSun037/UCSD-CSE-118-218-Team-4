@@ -33,7 +33,27 @@ public class DebugActivity extends AppCompatActivity {
         }
 
         ArrayList<String> locationsList = getIntent().getStringArrayListExtra("locations");
+        assert locationsList != null;
+        locationsList.sort((a, b) -> {
+            if (a.equals("school") && !b.equals("school")) {
+                return -1;
+            } else if (a.equals("school")) {
+                return 0;
+            } else {
+                return 1;
+            }
+        });
         ArrayList<String> timesList = getIntent().getStringArrayListExtra("times");
+        assert timesList != null;
+        timesList.sort((a, b) -> {
+            if (a.equals("working") && !b.equals("working")) {
+                return -1;
+            } else if (a.equals("working")) {
+                return 0;
+            } else {
+                return 1;
+            }
+        });
 
         // Location Dropdown
         Spinner locationSpinner = findViewById(R.id.locationSpinner);
