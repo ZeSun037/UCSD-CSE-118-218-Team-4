@@ -169,7 +169,6 @@ public class MainActivity extends FragmentActivity {
             TimeRange selectedTimeRange = user.getTimeMap().get(selectedTime.toLowerCase());
             // Convert the selected time range to milliseconds
             long startTimeMillis = convertTimeToMillis(selectedTimeRange.getStartHour(), selectedTimeRange.getStartMinute());
-            Log.d("Update fragment", "from updateTime");
 
             updateFragment(startTimeMillis);
         }
@@ -207,10 +206,6 @@ public class MainActivity extends FragmentActivity {
                         Log.d("new group todos", groupTemp.toString());
                         groupTodoItems = groupTemp;
                         hasNewGroupTodos = true;
-                    }
-                    if (hasNewPersonalTodos || hasNewGroupTodos) {
-                        Toast.makeText(this, "You have new todos.",
-                                Toast.LENGTH_SHORT).show();
                     }
 
                     // Update the adapter with the latest data
@@ -272,13 +267,22 @@ public class MainActivity extends FragmentActivity {
 
         // Fetch from redis
         List<TodoItem> todos = RedisHelper.getTodos(groupId);
+        boolean hasAssignedTodos = false;
         for (TodoItem todo: todos) {
             if (!groupTodoDatabase.containsTodo(todo)) {
                 // Add new to-do if not exist
                 groupTodoDatabase.insertTodo(todo);
+                if (!isFirstTime && todo.getAssignee().equals(user.getName())) {
+                    hasAssignedTodos = true;
+                }
             } else {
                 groupTodoDatabase.updateTodo(todo);
             }
+        }
+
+        if (hasAssignedTodos) {
+            Toast.makeText(this, "You are assigned with new todos.",
+                    Toast.LENGTH_SHORT).show();
         }
 
         List<TodoItem> todoItems = groupTodoDatabase.getAllTodos();
