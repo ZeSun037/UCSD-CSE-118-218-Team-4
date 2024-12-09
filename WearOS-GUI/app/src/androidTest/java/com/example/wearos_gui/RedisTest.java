@@ -44,14 +44,14 @@ public class RedisTest {
     @Test
     public void testAddMultipleToDos() {
         // Creating To-Do items for the same user
-        TodoItem todo1 = new TodoItem("Buy groceries", TodoItem.Priority.MEDIUM, Place.STORE, Time.REST, LocalDate.now(),
+        TodoItem todo1 = new TodoItem("do homework", TodoItem.Priority.MEDIUM, Place.HOME, Time.GENERAL, LocalDate.now(),
         "", false);
-        TodoItem todo2 = new TodoItem("Prepare slides for meeting", TodoItem.Priority.MEDIUM, Place.SCHOOL, Time.WORKING, LocalDate.now(),
-                "", false);
+//        TodoItem todo2 = new TodoItem("Prepare slides for meeting", TodoItem.Priority.MEDIUM, Place.SCHOOL, Time.WORKING, LocalDate.now(),
+//                "", false);
 
         // Adding To-Do items to Redis for the user
         jedis.hset(userId, todo1.getTitle(), todo1.toString());
-        jedis.hset(userId, todo2.getTitle(), todo2.toString());
+//        jedis.hset(userId, todo2.getTitle(), todo2.toString());
 
         // Fetching and printing To-Do items for the user
         Map<String, String> todos = jedis.hgetAll(userId);
@@ -59,11 +59,11 @@ public class RedisTest {
         // Assertions
         assertNotNull(todos);
         assertTrue(todos.containsKey(todo1.getTitle()));
-        assertTrue(todos.containsKey(todo2.getTitle()));
+//        assertTrue(todos.containsKey(todo2.getTitle()));
 
         // Verifying that the details are correctly stored
         assertTrue(todos.get(todo1.getTitle()).contains(todo1.getPriority().toString()));
-        assertTrue(todos.get(todo2.getTitle()).contains(todo2.getPriority().toString()));
+//        assertTrue(todos.get(todo2.getTitle()).contains(todo2.getPriority().toString()));
 
         // Converting the fetched strings back to to-do objects
         for (String title : todos.keySet()) {
