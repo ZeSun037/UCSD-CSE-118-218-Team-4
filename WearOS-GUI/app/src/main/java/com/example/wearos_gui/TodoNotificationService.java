@@ -103,8 +103,8 @@ public class TodoNotificationService extends Service {
 
             if (isTestMode) {
                 return topItem;
-            } else {
-                // TODO: can set a threshold value for notifying todo item
+            } else if (TodoSorter.getItemScore(topItem, this.user, this.lat, this.lng, System.currentTimeMillis()) >= 0.55) {
+                // set a threshold value for notifying to-do item
                 // Check the cache for this item's notification status
                 String cacheKey = String.valueOf(topItem.getTitle().hashCode());
                 long lastNotified = notificationCache.getLong(cacheKey, 0);
