@@ -81,7 +81,7 @@ public class RedisTest {
     @Test
     public void testGetToDos() {
         // Fetching and printing To-Do items for the user
-        Map<String, String> todos = jedis.hgetAll(userId);
+        Map<String, String> todos = jedis.hgetAll(groupId);
 
         // Converting the fetched strings back to to-do objects
         for (String title : todos.keySet()) {
@@ -111,7 +111,7 @@ public class RedisTest {
 
     @Test
     public void testDeleteToDos() {
-        long count = jedis.del(userId);
+        long count = jedis.del(groupId);
         System.out.println("Deleted To-Do: " + count);
     }
 }

@@ -86,7 +86,7 @@ public class TodoNotificationService extends Service {
                 // Continue checking every 1 minutes
                 handler.postDelayed(this, isTestMode ? delay : 5*delay);
             }
-        }, delay*40);
+        }, delay);
 
         return START_STICKY;
     }

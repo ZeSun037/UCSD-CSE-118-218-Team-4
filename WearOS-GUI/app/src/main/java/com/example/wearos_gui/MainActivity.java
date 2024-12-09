@@ -193,29 +193,27 @@ public class MainActivity extends FragmentActivity {
                     // Fetch personal and group todos
                     Log.d("Fetch", "Fetching...");
 
-                    boolean hasNewPersonalTodos = false;
                     List<TodoItem> personalTemp = fetchPersonalTodos(false);
                     if (!personalTemp.toString().equals(personalTodoItems.toString())) {
                         Log.d("new personal todos", personalTemp.toString());
                         personalTodoItems = personalTemp;
-                        hasNewPersonalTodos = true;
+
+                        // Update the adapter with the latest data
+                        Fragment fragment = getSupportFragmentManager().findFragmentByTag("f0");
+                        if (fragment instanceof FilteredTodoFragment) {
+                            adapter.updateItems(personalTodoItems, 0, persoanlTodoDatabase);
+                            ((FilteredTodoFragment) fragment).updateTodoItems(personalTodoItems);
+                        }
                     }
-                    boolean hasNewGroupTodos = false;
+
                     List<TodoItem> groupTemp = fetchGroupTodos(groupId, false);
                     if (!groupTemp.toString().equals(groupTodoItems.toString())) {
                         Log.d("new group todos", groupTemp.toString());
                         groupTodoItems = groupTemp;
-                        hasNewGroupTodos = true;
-                    }
 
-                    // Update the adapter with the latest data
-                    Fragment fragment = getSupportFragmentManager()
-                            .findFragmentByTag("f" + viewPager.getCurrentItem());
-                    if (fragment instanceof FilteredTodoFragment) {
-                        if (viewPager.getCurrentItem() == 0 && hasNewPersonalTodos) {
-                            adapter.updateItems(personalTodoItems, 0, persoanlTodoDatabase);
-                            ((FilteredTodoFragment) fragment).updateTodoItems(personalTodoItems);
-                        } else if (viewPager.getCurrentItem() == 1 && hasNewGroupTodos) {
+                        // Update the adapter with the latest data
+                        Fragment fragment = getSupportFragmentManager().findFragmentByTag("f1");
+                        if (fragment instanceof FilteredTodoFragment) {
                             adapter.updateItems(groupTodoItems, 1, groupTodoDatabase);
                             ((FilteredTodoFragment) fragment).updateTodoItems(groupTodoItems);
                         }
@@ -224,7 +222,7 @@ public class MainActivity extends FragmentActivity {
                     Log.e("PeriodicFetch", "Error updating to-dos", e);
                 }
             });
-        }, 1, 1, TimeUnit.MINUTES); // initial delay: 1, delay b/t executions: 1 minute
+        }, 30, 20, TimeUnit.SECONDS); // initial delay: 30s, delay b/t executions: 20s
     }
 
 
